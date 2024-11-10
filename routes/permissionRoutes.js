@@ -4,7 +4,7 @@ import { validateCreatePermission, validatePermission, validateUpdatePermission 
 import { createPermission, deletePermission, getPermissions, updatePermission } from '../controllers/permissionController.js'
 import { addPermissionToUser, getUserPermissions, revokePermissionFromUser } from '../controllers/userController.js'
 import { addPermissionToRole, getPermissionsOfRole, revokePermissionFromRole } from '../controllers/roleController.js'
-import { isSuperAdmin } from '../middlewares/isSuperAdmin.js'
+import { isSuperAdmin } from '../middlewares/authorization.js'
 
 const router = express.Router()
 
