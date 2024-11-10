@@ -104,23 +104,48 @@ export const revokePermission = async (userId, permissionId) => {
 export const getPermissionsOfUser = async (userId) => {
 
     const user = await User.findByPk(userId, {
-        include: {
-            model: Permission,
-            as: 'Permissions',
-            through: { attributes: [] }
-        }
+        include: [
+            {
+                model: Permission,
+                as: 'Permissions',
+                through: { attributes: [] }
+            },
+            {
+                model: Role,
+                as: 'Role',
+                include: [
+                    {
+                        model: Permission,
+                        as: 'Permissions',
+                        through: { attributes: [] }
+                    }
+                ]
+            }
+        ]
     })
 
     if (!user) {
         throw new Error('Utilisateur non trouvé')
     }
 
-    const permissions = user.Permissions.map(permission => ({
+    const userPermissions = user.Permissions.map(permission => ({
         PermissionID: permission.PermissionID,
         Name: permission.Name,
         Description: permission.Description
     }))
-    return permissions
+
+    const rolePermissions = user.Role.Permissions.map(permission => ({
+        PermissionID: permission.PermissionID,
+        Name: permission.Name,
+        Description: permission.Description
+    }))
+
+    const allPermissions = [...userPermissions, ...rolePermissions]
+    const uniquePermissions = Array.from(
+        new Map(allPermissions.map(p => [p.PermissionID, p])).values()
+    )
+
+    return uniquePermissions
 }
 
 

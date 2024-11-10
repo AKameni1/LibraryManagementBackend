@@ -1,7 +1,7 @@
 import { validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { User } from '../models/index.js'
+import { User, Role } from '../models/index.js'
 
 export const loginUser = async (req, res) => {
     // Vérification des erreurs de validation
@@ -25,17 +25,35 @@ export const loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' })
         }
         
-        // Générer le token JWT
-        const payload = {
-            userId: user.UserID,
-            email: user.Email
-        }
+        const token = await generateToken(user)
 
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' })
-
-        return res.status(200).json({ token })
+        return res.status(200).json({ token: token })
     } catch (err) {
         console.error(err)
         return res.status(500).json({ message: 'Erreur provenant du serveur' })
     }
+}
+
+const generateToken = async (user) => {
+    const userWithRole = await User.findByPk(user.UserID, {
+        include: {
+            model: Role,
+            as: 'Role'
+        }
+    })
+
+    if (!userWithRole) {
+        throw new Error('Utilisateur non trouvé')
+    }
+
+    const payload = {
+        userId: userWithRole.UserID,
+        username: userWithRole.Username,
+        email: userWithRole.Email,
+        role: userWithRole.Role.Name
+    }
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' })
+
+    return token
 }
