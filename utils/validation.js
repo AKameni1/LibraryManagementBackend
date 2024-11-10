@@ -9,7 +9,8 @@ export const validateCreateUser = [
 
 export const validateAuth = [
     body('username').notEmpty().withMessage('Le nom d\'utilisateur est requis.'),
-    body('password').isLength({ min: 12 }).withMessage('Le mot de passe doit contenir au 12 caractères')
+    body('email').optional().isEmail().withMessage('L\'email est invalide,'),
+    // body('password').isLength({ min: 12 }).withMessage('Le mot de passe doit contenir au 12 caractères')
 ]
 
 export const validateUpdateUser = [

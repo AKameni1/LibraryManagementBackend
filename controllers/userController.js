@@ -2,6 +2,7 @@ import { validationResult } from 'express-validator'
 import { User, Role } from '../models/index.js'
 import { promoteUserRole, downgradeUserRole } from './roleController.js'
 import { addPermission, revokePermission, getPermissionsOfUser } from './permissionController.js'
+import { Op } from 'sequelize'
 import bcrypt from 'bcryptjs'
 // import jwt from 'jsonwebtoken'
 
@@ -89,7 +90,14 @@ export const createUser = async (req, res) => {
         }
 
         // Vérification si l'utilisateur existe déjà
-        const existingUser = await User.findOne({ where: { Email: email } | { Username: username } })
+        const existingUser = await User.findOne({
+            where: {
+              [Op.or]: [
+                { Username: username },
+                { Email: email }
+              ]
+            }
+          })
         if (existingUser) {
             return res.status(400).json({ message: `L'utilisateur ${existingUser.Username} existe déjà.` })
         }

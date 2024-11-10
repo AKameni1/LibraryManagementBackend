@@ -50,9 +50,8 @@ const User = sequelize.define('User', {
     tableName: 'User',
     timestamps: false, 
     hooks: {
-        beforeCreate: async (user) => {
-            const saltRounds = 10
-            user.Password = await bcrypt.hash(user.Password, saltRounds)
+        beforeCreate: (user) => {
+            user.Password = bcrypt.hashSync(user.Password)
         }
     }
 })
