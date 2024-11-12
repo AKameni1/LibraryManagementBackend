@@ -7,7 +7,9 @@ import Permission from './Permission.js'
 import UserPermission from './UserPermission.js'
 import RolePermission from './RolePermission.js'
 import Category from './Category.js'
-
+import Report from './Report.js'
+import ReportParameter from './ReportParameter.js'
+import AuditLog from './AuditLog.js'
 
 // Définition des relations entre nos models
 
@@ -54,5 +56,8 @@ Reservation.belongsTo(Book, { foreignKey: 'BookID', onDelete: 'CASCADE' })
 Book.belongsTo(Category, { foreignKey: 'CategoryID', onDelete: 'CASCADE' })
 Category.hasMany(Book, { foreignKey: 'CategoryID', onDelete: 'CASCADE' })
 
+Report.hasMany(ReportParameter, { foreignKey: 'ReportID', onDelete: 'CASCADE' })
+ReportParameter.belongsTo(Report, { foreignKey: 'ReportID' })
+AuditLog.belongsTo(User, { foreignKey: 'UserID' })
 
-export { User, Role, Book, Loan, Category, Reservation, Permission, UserPermission, RolePermission }
+export { User, Role, Book, Loan, Category, Reservation, Permission, UserPermission, RolePermission, Report, ReportParameter, AuditLog}

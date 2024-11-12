@@ -10,7 +10,8 @@ import reservationRoutes from './routes/reservationRoutes.js'
 import categoryRoutes from './routes/categoryRoutes.js'
 import sequelize from './config/db.js'
 import './utils/scheduler.js'
-
+import reportRoutes from './routes/reportRoutes.js'
+import auditLogRoutes from './routes/auditLogRoutes.js'
 
 dotenv.config()
 
@@ -27,7 +28,8 @@ app.use('/api/books', bookRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/loans', loanRoutes)
 app.use('/api/reservations', reservationRoutes)
-
+app.use('/api/reports', reportRoutes)
+app.use('/api/audit-logs', auditLogRoutes)
 
 // Connexion à la base de données
 sequelize.sync().then(() => {
