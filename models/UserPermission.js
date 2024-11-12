@@ -26,7 +26,5 @@ const UserPermission = sequelize.define('UserPermission', {
     timestamps: false
 })
 
-UserPermission.belongsTo(User, { foreignKey: 'UserID' })
-UserPermission.belongsTo(Permission, { foreignKey: 'PermissionID' })
 
 export default UserPermission

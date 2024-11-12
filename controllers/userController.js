@@ -4,7 +4,7 @@ import { promoteUserRole, downgradeUserRole } from './roleController.js'
 import { addPermission, revokePermission, getPermissionsOfUser } from './permissionController.js'
 import { Op } from 'sequelize'
 import bcrypt from 'bcryptjs'
-// import jwt from 'jsonwebtoken'
+import { handleError } from '../utils/handleError.js'
 
 
 export const createSuperAdmin = async (req, res) => {
@@ -31,7 +31,7 @@ export const createSuperAdmin = async (req, res) => {
 
         res.status(201).json({ message: 'Super administrateur créé avec succès', user: superAdmin })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de la création du super administrateur', error })
+        handleError(res, 'Erreur lors de la création du super administrateur', error)
     }
 }
 
@@ -67,7 +67,7 @@ export const getUserInfo = async (req, res) => {
         })
     } catch (error) {
         console.error(err)
-        res.status(500).json({ message: 'Erreur provenant du serveur' })
+        handleError(res, 'Erreur provenant du serveur', error)
     }
 }
 
@@ -112,7 +112,7 @@ export const createUser = async (req, res) => {
 
         res.status(201).json({ message: 'Utilisateur créé avec succès.', user: newUser })
     } catch (error) {
-        res.status(500).json({ message: `Erreur survenu lors de la création de l'utilisateur. Error: ${error.message}` })
+        handleError(res, 'Erreur survenu lors de la création de l\'utilisateur', error)
     }
 }
 
@@ -122,7 +122,7 @@ export const getUsers = async (req, res) => {
         const users = await User.findAll()
         res.json(users)
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de la récupération des utilisateurs.' })
+        handleError(res, 'Erreur lors de la récupération des utilisateurs.', error)
     }
 }
 
@@ -138,7 +138,7 @@ export const getUserById = async (req, res) => {
 
         res.json(user)
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de la récupération de l\'utilisateur.'})
+        handleError(res, 'Erreur lors de la récupération de l\'utilisateur.', error)        
     }
 }
 
@@ -149,7 +149,7 @@ export const updateUser = async (req, res) => {
     
     const updates = req.body
     
-    console.log("Données reçues pour mise à jour :", updates);
+    console.log("Données reçues pour mise à jour :", updates)
     
     
     const errors = validationResult(req)
@@ -176,7 +176,7 @@ export const updateUser = async (req, res) => {
         res.json({ message: `Utilisateur ${user.Username} mis à jour avec succès`, user: user })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'utilisateur.' })        
+        handleError(res, 'Erreur lors de la mise à jour de l\'utilisateur.', error)     
     }
 }
 
@@ -195,7 +195,7 @@ export const deleteUser = async (req, res) => {
         res.status(200).json({ message: `L'utilisateur ${user.Username} a été supprimé avec succès.` })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: `Erreur lors de la suppression de l'utilisateur. ${error.message}` })
+        handleError(res, 'Erreur lors de la suppression de l\'utilisateur.', error)        
     }
 }
 
@@ -221,7 +221,7 @@ export const toggleUserActivation = async (req, res) => {
         const statusMessage = isActive ? 'activé' : 'désactivé'
         res.json({ message: `Utilisateur ${statusMessage} avec succès.`, user: user })
     } catch (error) {
-        res.status(500).json({ message: `Erreur lors de la désactivation de l'utilisateur. Error: ${error.message}`})
+        handleError(res, 'Erreur lors de la désactivation de l\'utilisateur.', error)
     }
 }
 
@@ -238,7 +238,7 @@ export const promoteUser = async (req, res) => {
         await promoteUserRole(userId, newRoleId)
         res.status(200).json({ message: 'Utilisateur promu avec succès' })
     } catch (error) {
-        res.status(400).json({ message: error.message })
+        handleError(res, 'Erreur du serveur', error)
     }
 }
 
@@ -250,7 +250,7 @@ export const downgradeUser = async (req, res) => {
         await downgradeUserRole(userId)
         res.status(200).json({ message: 'Utilisateur rétrogradé avec succès' })
     } catch (error) {
-        res.status(400).json({ message: error.message })
+        handleError(res, 'Erreur du serveur', error)
     }
 }
 
@@ -267,7 +267,7 @@ export const addPermissionToUser = async (req, res) => {
         await addPermission(userId, permissionId)
         res.status(200).json({ message: 'Permission ajoutée à l\'utilisateur avec succès.' })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de l\'ajout de la permission à l\'utilisateur', error: error })
+        handleError(res, 'Erreur lors de l\'ajout de la permission à l\'utilisateur', error)
     }
 }
 
@@ -284,7 +284,7 @@ export const revokePermissionFromUser = async (req, res) => {
         await revokePermission(userId, permissionId)
         res.status(200).json({ message: 'Permission révoquée de l\'utilisateur avec succès.' })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de la suppression de la permission de l\'utilisateur', error: error })
+        handleError(res, 'Erreur lors de la suppression de la permission de l\'utilisateur', error)
     }
 }
 
@@ -296,6 +296,12 @@ export const getUserPermissions = async (req, res) => {
         const permissions = await getPermissionsOfUser(userId)
         res.status(200).json({ permissions: permissions })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de la récupération des permissions', error: error })
+        handleError(res, 'Erreur lors de la récupération des permissions', error)
     }
+}
+
+export const updateActivationUserAccount = async (userId) => {
+    const user = await User.findByPk(userId)
+    await user.update({ IsActive: !user.IsActive })
+    await user.save()
 }
