@@ -1,7 +1,7 @@
 import express from 'express'
 import authenticateJWT from '../middlewares/authMiddleware.js'
 import { getUserInfo, updateUser } from '../controllers/userController.js'
-import { validateCreateUser } from '../utils/validation.js'
+import { validateCreateUser, validateUpdateUser } from '../utils/validation.js'
 import { isCurrentUser } from '../middlewares/authorization.js'
 import { createUser } from '../controllers/adminController.js'
 
