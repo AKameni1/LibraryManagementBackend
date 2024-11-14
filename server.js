@@ -2,6 +2,7 @@ import express from 'express'
 import dotenv from 'dotenv'
 import authRoutes from './routes/authRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import adminRoutes from './routes/adminRoutes.js'
 import roleRoutes from './routes/roleRoutes.js'
 import permissionRoutes from './routes/permissionRoutes.js'
 import bookRoutes from './routes/bookRoutes.js'
@@ -22,6 +23,7 @@ app.use(express.json())
 // Utilisation des routes
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/admin', adminRoutes)
 app.use('/api/roles', roleRoutes)
 app.use('/api/permissions', permissionRoutes)
 app.use('/api/books', bookRoutes)

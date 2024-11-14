@@ -1,7 +1,7 @@
 import express from 'express'
 import authenticateJWT from '../middlewares/authMiddleware.js'
 import { getAllRoles, getRoleById, getUsersByRole } from '../controllers/roleController.js'
-import { downgradeUser, promoteUser } from '../controllers/userController.js'
+import { downgradeUser, promoteUser } from '../controllers/adminController.js'
 import { validateUserRole } from '../utils/validation.js'
 import { isAdmin, isSuperAdmin } from '../middlewares/authorization.js'
 

@@ -2,7 +2,7 @@ import express from 'express'
 import authenticateJWT from '../middlewares/authMiddleware.js'
 import { validateCreatePermission, validatePermission, validateUpdatePermission } from '../utils/validation.js'
 import { createPermission, deletePermission, getPermissions, updatePermission } from '../controllers/permissionController.js'
-import { addPermissionToUser, getUserPermissions, revokePermissionFromUser } from '../controllers/userController.js'
+import { addPermissionToUser, getUserPermissions, revokePermissionFromUser } from '../controllers/adminController.js'
 import { addPermissionToRole, getPermissionsOfRole, revokePermissionFromRole } from '../controllers/roleController.js'
 import { isSuperAdmin } from '../middlewares/authorization.js'
 

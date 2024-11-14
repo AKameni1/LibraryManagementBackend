@@ -2,7 +2,7 @@ import sequelize from '../config/db.js'
 import { Loan, Book, Reservation, User } from '../models/index.js'
 import { handleError } from '../utils/handleError.js'
 import { sendEmailNotification } from '../utils/notificationHelper.js'
-import { updateActivationUserAccount } from './userController.js'
+import { updateActivationUserAccount } from './adminController.js'
 
 
 // Emprunter un livre
