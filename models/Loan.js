@@ -1,4 +1,4 @@
-import { DataTypes, Model } from 'sequelize'
+import { DataTypes } from 'sequelize'
 import sequelize from '../config/db.js'
 import User from './User.js'
 import Book from './Book.js'

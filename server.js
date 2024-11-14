@@ -8,10 +8,10 @@ import bookRoutes from './routes/bookRoutes.js'
 import loanRoutes from './routes/loanRoutes.js'
 import reservationRoutes from './routes/reservationRoutes.js'
 import categoryRoutes from './routes/categoryRoutes.js'
-import sequelize from './config/db.js'
-import './utils/scheduler.js'
 import reportRoutes from './routes/reportRoutes.js'
 import auditLogRoutes from './routes/auditLogRoutes.js'
+import sequelize from './config/db.js'
+import './utils/scheduler.js'
 
 dotenv.config()
 
