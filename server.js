@@ -5,6 +5,9 @@ import userRoutes from './routes/userRoutes.js'
 import roleRoutes from './routes/roleRoutes.js'
 import permissionRoutes from './routes/permissionRoutes.js'
 import sequelize from './config/db.js'
+import supportTicketRoutes from './routes/supportTicketRoutes.js';
+import ticketResponseRoutes from './routes/ticketResponseRoutes.js';
+import faqRoutes from './routes/faqRoutes.js';
 
 
 dotenv.config()
@@ -18,6 +21,10 @@ app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/roles', roleRoutes)
 app.use('/api/permissions', permissionRoutes)
+app.use('/api/support-tickets', supportTicketRoutes);
+app.use('/api/ticket-responses', ticketResponseRoutes);
+app.use('/api/faqs', faqRoutes);
+
 
 
 // Connexion à la base de données
