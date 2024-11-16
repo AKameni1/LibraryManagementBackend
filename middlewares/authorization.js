@@ -17,7 +17,7 @@ export const isAdmin = (req, res, next) => {
 
 
 export const isLibrarian = (req, res, next) => {
-    if (req.user.role !== 'librarian' && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+    if (req.user.role !== 'librarian' && req.user.role !== 'admin' && req.user.role !== 'superAdmin') {
         return res.status(403).json({ message: 'Accès interdit : seul un librarian, admin ou superadmin peut accéder à cette ressource' })
     }
     next()

@@ -1,4 +1,5 @@
 import { User, Permission, UserPermission, RolePermission, Role } from '../models/index.js'
+import { handleError } from '../utils/handleError.js'
 
 // Récupérer toutes les permissions
 export const getPermissions = async (req, res) => {
@@ -6,7 +7,7 @@ export const getPermissions = async (req, res) => {
         const permissions = await Permission.findAll()
         res.status(200).json(permissions)
     } catch (error) {
-        res.status(500).json({ message: 'Erreur serveur' })
+        handleError(res, 'Erreur serveur', error)
     }
 }
 
@@ -22,7 +23,7 @@ export const createPermission = async (req, res) => {
         const newPermission = await Permission.create({ Name: name, Description: description })
         res.status(201).json({ message: 'Permission créée avec succès.', permission: newPermission })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur serveur lors de la création de la permission.' })
+        handleError(res, 'Erreur serveur lors de la création de la permission.', error)
     }
 }
 
@@ -43,7 +44,7 @@ export const updatePermission = async (req, res) => {
 
         res.status(200).json({ message: 'Permission mise à jour avec succès.' })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur serveur lors de la mise à jour de la permission.' })
+        handleError(res, 'Erreur serveur lors de la mise à jour de la permission.', error)
     }
 }
 
@@ -60,7 +61,7 @@ export const deletePermission = async (req, res) => {
         await permission.destroy()
         res.status(200).json({ message: 'Permission supprimée avec succès.' })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur serveur lors de la suppression de la permission.' })
+        handleError(res, 'Erreur serveur lors de la suppression de la permission.', error)
     }
 }
 

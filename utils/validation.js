@@ -40,3 +40,38 @@ export const validateUpdatePermission = [
     body('name').optional().notEmpty().withMessage('Le nom de la permission est requis.'),
     body('description').optional().notEmpty().withMessage('La description de la permission est requis.')
 ]
+export const validateCreateReport = [
+    body('title')
+        .notEmpty()
+        .withMessage('Report title is required'),
+    body('reportType')
+        .isIn(['User Activity', 'Usage Stats', 'Error Log', 'Custom'])
+        .withMessage('Invalid report type'),
+    body('parameters')
+        .optional()
+        .isArray()
+        .withMessage('Parameters must be an array')
+]
+
+export const validateUpdateReport = [
+    body('title')
+        .optional()
+        .notEmpty()
+        .withMessage('Report title cannot be empty'),
+    body('reportType')
+        .optional()
+        .isIn(['User Activity', 'Usage Stats', 'Error Log', 'Custom'])
+        .withMessage('Invalid report type'),
+    body('parameters')
+        .optional()
+        .isArray()
+        .withMessage('Parameters must be an array'),
+    body('parameters.*.name')
+        .optional()
+        .notEmpty()
+        .withMessage('Parameter name is required'),
+    body('parameters.*.value')
+        .optional()
+        .notEmpty()
+        .withMessage('Parameter value is required')
+]

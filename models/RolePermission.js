@@ -26,7 +26,5 @@ const RolePermission = sequelize.define('RolePermission', {
     timestamps: false
 })
 
-RolePermission.belongsTo(Role, { foreignKey: 'RoleID' })
-RolePermission.belongsTo(Permission, { foreignKey: 'PermissionID' })
 
 export default RolePermission

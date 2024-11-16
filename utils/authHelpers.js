@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { User, Role } from '../models/index.js'
+import authConfig from '../config/auth.js'
 
 export const generateToken = async (user) => {
     const userWithRole = await User.findByPk(user.UserID, {
@@ -20,7 +21,14 @@ export const generateToken = async (user) => {
         role: userWithRole.Role.Name
     }
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' })
+    const accessToken = jwt.sign(payload, authConfig.JWT_SECRET, { expiresIn: authConfig.JWT_EXPIRATION })
+    // const refreshToken = jwt.sign(payload, tokenConfig.refreshTokenSecret, { expiresIn: tokenConfig.refreshTokenExpiresIn })
 
-    return token
+    // const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' })
+
+    return accessToken
+}
+
+export const generateRefreshToken = (user) => {
+    return jwt.sign({ userId: user.UserID }, authConfig.JWT_REFRESH, { expiresIn: authConfig.JWT_REFRESH_EXPIRATION })
 }

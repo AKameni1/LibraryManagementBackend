@@ -2,7 +2,6 @@ import { DataTypes } from 'sequelize'
 import bcrypt from 'bcryptjs'
 import sequelize from '../config/db.js'
 import Role from './Role.js'
-import Permission from './Permission.js'
 
 const User = sequelize.define('User', {
     UserID: {
@@ -45,6 +44,31 @@ const User = sequelize.define('User', {
             key: 'RoleID',
         },
         allowNull: false,
+    },
+
+    LoanCount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+
+    LoanLimit: {
+        type: DataTypes.INTEGER,
+        defaultValue: 3
+    },
+
+    LateReturnCount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+
+    PenaltyPoints: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+
+    LoanSuspendedUntil: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 }, {
     tableName: 'User',
@@ -56,9 +80,5 @@ const User = sequelize.define('User', {
     }
 })
 
-User.belongsTo(Role, { foreignKey: 'RoleId', as: 'Role' })
-Role.hasMany(User, { foreignKey: 'RoleId' })
-
-User.belongsToMany(Permission, { through: 'UserPermission', foreignKey: 'UserID', as: 'Permissions' })
 
 export default User

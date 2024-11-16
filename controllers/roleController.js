@@ -1,4 +1,5 @@
 import { User, Role } from '../models/index.js'
+import { handleError } from '../utils/handleError.js'
 import { addPermissionRole, getPermissionsRole, revokePermissionRole } from './permissionController.js'
 
 // Récupérer tous les rôles
@@ -7,7 +8,7 @@ export const getAllRoles = async (req, res) => {
         const roles = await Role.findAll()
         res.status(200).json(roles)
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de la récupération des rôles', error })
+        handleError(res, 'Erreur lors de la récupération des rôles', error)        
     }
 }
 
@@ -22,7 +23,7 @@ export const getRoleById = async (req, res) => {
         }
         res.status(200).json(role)
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de la récupération du rôle', error })
+        handleError(res, 'Erreur lors de la récupération du rôle', error)
     }
 }
 
@@ -44,7 +45,7 @@ export const getUsersByRole = async (req, res) => {
         res.status(200).json(users)
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la récupération des utilisateurs', error })
+        handleError(res, 'Erreur lors de la récupération des utilisateurs', error)
     }
 }
 
@@ -96,7 +97,7 @@ export const addPermissionToRole = async (req, res) => {
         await addPermissionRole(roleId, permissionId)
         res.status(200).json({ message: 'Permission ajoutée à l\'utilisateur avec succès.' })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de l\'ajout de la permission à l\'utilisateur', error: error })
+        handleError(res, 'Erreur lors de l\'ajout de la permission à l\'utilisateur', error)
     }
 }
 
@@ -113,7 +114,7 @@ export const revokePermissionFromRole = async (req, res) => {
         await revokePermissionRole(roleId, permissionId)        
         res.status(200).json({ message: 'Permission supprimée du rôle avec succès.' })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de la suppression de la permission du rôle.', error: error.message })
+        handleError(res, 'Erreur lors de la suppression de la permission du rôle.', error)
     }
 }
 
@@ -125,6 +126,6 @@ export const getPermissionsOfRole = async (req, res) => {
         const permissions = await getPermissionsRole(roleId)
         res.status(200).json({ permissions })
     } catch (error) {
-        res.status(500).json({ message: 'Erreur lors de la récupération des permissions du rôle.', error: error.message })
+        handleError(res, 'Erreur lors de la récupération des permissions du rôle.', error)
     }
 }
