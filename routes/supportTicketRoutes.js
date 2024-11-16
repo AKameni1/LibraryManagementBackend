@@ -1,11 +1,17 @@
-const express = require('express');
+import express from 'express';
+import { 
+  createSupportTicket, 
+  getAllSupportTickets, 
+  getSupportTicketById, 
+  updateSupportTicket, 
+  deleteSupportTicket 
+} from './supportTicket.controller.js';
+
 const router = express.Router();
-const supportTicketController = require('../controllers/supportTicketController');
+router.post('/', createSupportTicket); 
+router.get('/', getAllSupportTickets);  
+router.get('/:id', getSupportTicketById);
+router.put('/:id', updateSupportTicket);  
+router.delete('/:id', deleteSupportTicket);  
 
-router.post('/', supportTicketController.createTicket);
-router.get('/', supportTicketController.getAllTickets);
-router.get('/:id', supportTicketController.getTicketById);
-router.put('/:id', supportTicketController.updateTicket);
-router.delete('/:id', supportTicketController.deleteTicket);
-
-module.exports = router;
+export default router;

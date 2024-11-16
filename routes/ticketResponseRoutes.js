@@ -1,8 +1,17 @@
-const express = require('express');
+import express from 'express';
+import { 
+  createTicketResponse, 
+  getTicketResponseById, 
+  getAllTicketResponses, 
+  updateTicketResponse, 
+  deleteTicketResponse 
+} from './ticketResponse.controller.js';
+
 const router = express.Router();
-const ticketResponseController = require('../controllers/ticketResponseController');
+router.post('/', createTicketResponse); 
+router.get('/', getAllTicketResponses); 
+router.get('/:id', getTicketResponseById); 
+router.put('/:id', updateTicketResponse); 
+router.delete('/:id', deleteTicketResponse);  
 
-router.post('/', ticketResponseController.createResponse);
-router.get('/:ticketId', ticketResponseController.getResponsesByTicket);
-
-module.exports = router;
+export default router;

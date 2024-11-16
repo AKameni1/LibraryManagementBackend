@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const supportTicketSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  status: { type: String, enum: ['Open', 'In Progress', 'Closed'], default: 'Open' },
-  createdAt: { type: Date, default: Date.now }
+  status: { type: String, required: true }
 });
 
-module.exports = mongoose.model('SupportTicket', supportTicketSchema);
+const SupportTicket = mongoose.model('SupportTicket', supportTicketSchema);
+export default SupportTicket;

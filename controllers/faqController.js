@@ -1,55 +1,83 @@
-const FAQ = require('../model/FAQ');
+import FAQ from './faq.model.js'; 
 
-// Créer une FAQ
-exports.createFAQ = async (req, res) => {
+
+export const createFAQ = async (req, res) => {
   try {
-    const faq = new FAQ(req.body);
-    await faq.save();
-    res.status(201).json(faq);
+    const { question, answer } = req.body;
+
+   
+    const newFAQ = new FAQ({ question, answer });
+
+   
+    await newFAQ.save();
+
+    
+    res.status(201).json(newFAQ);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la création de la FAQ', error });
+    res.status(500).json({ error: 'Erreur lors de la création de la FAQ' });
   }
 };
 
-// Obtenir toutes les FAQs
-exports.getAllFAQs = async (req, res) => {
+
+export const getAllFAQs = async (req, res) => {
   try {
+    
     const faqs = await FAQ.find();
+
+    
     res.status(200).json(faqs);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la récupération des FAQs', error });
+    res.status(500).json({ error: 'Erreur lors de la récupération des FAQs' });
   }
 };
 
-// Obtenir une FAQ par ID
-exports.getFAQById = async (req, res) => {
+
+export const getFAQById = async (req, res) => {
   try {
-    const faq = await FAQ.findById(req.params.id);
-    if (!faq) return res.status(404).json({ message: 'FAQ non trouvée' });
+    const { id } = req.params;
+
+    
+    const faq = await FAQ.findById(id);
+
+    if (!faq) {
+      return res.status(404).json({ error: 'FAQ introuvable' });
+    }
     res.status(200).json(faq);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la récupération de la FAQ', error });
+    res.status(500).json({ error: 'Erreur lors de la récupération de la FAQ' });
   }
 };
 
-// Mettre à jour une FAQ
-exports.updateFAQ = async (req, res) => {
+
+export const updateFAQ = async (req, res) => {
   try {
-    const updatedFAQ = await FAQ.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedFAQ) return res.status(404).json({ message: 'FAQ non trouvée' });
-    res.status(200).json(updatedFAQ);
+    const { id } = req.params;
+    const { question, answer } = req.body;
+    const faq = await FAQ.findByIdAndUpdate(
+      id, 
+      { question, answer }, 
+      { new: true, runValidators: true }
+    );
+
+    if (!faq) {
+      return res.status(404).json({ error: 'FAQ introuvable' });
+    }
+    res.status(200).json(faq);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la mise à jour de la FAQ', error });
+    res.status(500).json({ error: 'Erreur lors de la mise à jour de la FAQ' });
   }
 };
 
-// Supprimer une FAQ
-exports.deleteFAQ = async (req, res) => {
+export const deleteFAQ = async (req, res) => {
   try {
-    const deletedFAQ = await FAQ.findByIdAndDelete(req.params.id);
-    if (!deletedFAQ) return res.status(404).json({ message: 'FAQ non trouvée' });
+    const { id } = req.params;
+    const faq = await FAQ.findByIdAndDelete(id);
+
+    if (!faq) {
+      return res.status(404).json({ error: 'FAQ introuvable' });
+    }
     res.status(200).json({ message: 'FAQ supprimée avec succès' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la suppression de la FAQ', error });
+    res.status(500).json({ error: 'Erreur lors de la suppression de la FAQ' });
   }
 };

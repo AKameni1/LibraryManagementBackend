@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const ticketResponseSchema = new mongoose.Schema({
   ticketId: { type: mongoose.Schema.Types.ObjectId, ref: 'SupportTicket', required: true },
-  responseText: { type: String, required: true },
-  respondedAt: { type: Date, default: Date.now }
+  response: { type: String, required: true }
 });
 
-module.exports = mongoose.model('TicketResponse', ticketResponseSchema);
+const TicketResponse = mongoose.model('TicketResponse', ticketResponseSchema);
+export default TicketResponse;
