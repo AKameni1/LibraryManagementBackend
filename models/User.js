@@ -1,84 +1,78 @@
-import { DataTypes } from 'sequelize'
-import bcrypt from 'bcryptjs'
-import sequelize from '../config/db.js'
-import Role from './Role.js'
+// models/User.js
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
 
-const User = sequelize.define('User', {
+// Modèle User - Gestion des utilisateurs du système
+// Stocke les informations des utilisateurs, leurs droits d'emprunt et pénalités
+const User = sequelize.define('user', {
+    // Identifiant unique de l'utilisateur
+    // Auto-incrémenté pour chaque nouvel utilisateur
     UserID: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
 
+    // Informations d'authentification et contact
+    // Utilisées pour la connexion et la communication
     Username: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(255),
         allowNull: false,
-        unique: true
+        unique: true          // Username unique requis
     },
-
     Email: {
         type: DataTypes.TEXT,
         allowNull: false,
-        unique: true
+        unique: true         // Email unique requis pour communications
     },
-
     Password: {
         type: DataTypes.TEXT,
-        allowNull: false
+        allowNull: false     // Stocké sous forme hashée
     },
 
+    // Métadonnées du compte utilisateur
+    // Gestion du statut et des droits
     CreationDate: {
         type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW
+        defaultValue: DataTypes.NOW    // Date de création automatique
     },
-
     IsActive: {
         type: DataTypes.BOOLEAN,
-        defaultValue: true
+        defaultValue: true    // Compte actif par défaut
     },
-
     RoleID: {
         type: DataTypes.INTEGER,
-        references: {
-            model: Role,
-            key: 'RoleID',
-        },
-        allowNull: false,
+        allowNull: false      // Référence vers la table des rôles
     },
 
+    // Statistiques et limites d'emprunt
+    // Suivi des emprunts et gestion des limitations
     LoanCount: {
         type: DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 0       // Nombre d'emprunts en cours
     },
-
     LoanLimit: {
         type: DataTypes.INTEGER,
-        defaultValue: 3
+        defaultValue: 3       // Maximum d'emprunts simultanés autorisés
     },
 
+    // Système de pénalités et suspensions
+    // Gestion des infractions et restrictions
     LateReturnCount: {
         type: DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 0       // Compteur des retours tardifs
     },
-
     PenaltyPoints: {
         type: DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 0       // Cumul des points de pénalité
     },
-
     LoanSuspendedUntil: {
         type: DataTypes.DATE,
-        allowNull: true
+        allowNull: true       // Date de fin de suspension des emprunts
     }
 }, {
-    tableName: 'User',
-    timestamps: false, 
-    hooks: {
-        beforeCreate: (user) => {
-            user.Password = bcrypt.hashSync(user.Password)
-        }
-    }
-})
+    tableName: 'user',
+    timestamps: false         // Pas de tracking automatique created_at/updated_at
+});
 
-
-export default User
+export default User;

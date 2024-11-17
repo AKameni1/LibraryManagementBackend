@@ -1,18 +1,56 @@
-import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js';
-import SupportTicket from '../models/SupportTicket.js';  // Importation du modèle SupportTicket
-import TicketResponseModel from '../models/TicketResponse.js';  // Importation du modèle TicketResponse
+// controllers/ticketResponseController.js
+import TicketResponse from '../models/TicketResponse.js';
+import SupportTicket from '../models/SupportTicket.js';
 
-// Si TicketResponse a déjà été défini dans le modèle ticketResponse.model.js, pas besoin de le redéfinir ici.
-// Vous pouvez l'utiliser directement.
+// Get all responses for a ticket
+export const getTicketResponses = async (req, res) => {
+  try {
+    const { ticketId } = req.params;
 
-const TicketResponse = TicketResponseModel(sequelize, DataTypes); // Appel à la fonction exportée pour associer sequelize
+    const ticket = await SupportTicket.findByPk(ticketId);
+    if (!ticket) {
+      return res.status(404).json({ message: "Support ticket not found" });
+    }
 
-// Association avec la table SupportTicket
-TicketResponse.belongsTo(SupportTicket, {
-  foreignKey: 'supportTicketId',
-  onDelete: 'CASCADE', // Si un ticket de support est supprimé, les réponses sont aussi supprimées
-});
+    const responses = await TicketResponse.findAll({
+      where: { TicketID: ticketId },
+      order: [['ResponseDate', 'ASC']]
+    });
 
-// Exportation du modèle TicketResponse
-export default TicketResponse;
+    res.status(200).json(responses);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching responses", error: error.message });
+  }
+};
+
+// Create a ticket response
+export const createTicketResponse = async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+    const { ResponseText } = req.body;
+
+    const ticket = await SupportTicket.findByPk(ticketId);
+    if (!ticket) {
+      return res.status(404).json({ message: "Support ticket not found" });
+    }
+
+    const response = await TicketResponse.create({
+      TicketID: ticketId,
+      UserID: req.user.UserID,
+      ResponseText,
+      ResponseDate: new Date()
+    });
+
+    // Update ticket status and timestamps
+    if (ticket.Status === 'Open') {
+      await ticket.update({
+        Status: 'In Progress',
+        UpdatedAt: new Date()
+      });
+    }
+
+    res.status(201).json(response);
+  } catch (error) {
+    res.status(500).json({ message: "Error creating response", error: error.message });
+  }
+};

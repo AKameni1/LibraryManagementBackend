@@ -1,23 +1,25 @@
 // routes/faqRoutes.js
-
 import express from 'express';
+import authenticateJWT from '../middlewares/authMiddleware.js';
 import { getAllFaqs, getFaqById, createFaq, updateFaq, deleteFaq } from '../controllers/faqController.js';
 
 const router = express.Router();
 
-// Route pour obtenir toutes les FAQs
+// Routes publiques - accessibles sans authentification
+// GET: Récupère toutes les FAQs
 router.get('/', getAllFaqs);
 
-// Route pour obtenir une FAQ spécifique par son ID
+// GET: Récupère une FAQ spécifique par son ID
 router.get('/:id', getFaqById);
 
-// Route pour créer une nouvelle FAQ
-router.post('/', createFaq);
+// Routes protégées - réservées aux administrateurs
+// POST: Crée une nouvelle FAQ
+router.post('/', authenticateJWT, createFaq);
 
-// Route pour mettre à jour une FAQ existante par son ID
-router.put('/:id', updateFaq);
+// PUT: Met à jour une FAQ existante
+router.put('/:id', authenticateJWT, updateFaq);
 
-// Route pour supprimer une FAQ par son ID
-router.delete('/:id', deleteFaq);
+// DELETE: Supprime une FAQ
+router.delete('/:id', authenticateJWT, deleteFaq);
 
 export default router;

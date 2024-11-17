@@ -1,14 +1,17 @@
+// routes/ticketResponseRoutes.js
 import express from 'express';
-import authenticateJWT from '../middlewares/authMiddleware.js'; // Middleware pour authentification
+import authenticateJWT from '../middlewares/authMiddleware.js';
 import { createTicketResponse, getTicketResponses } from '../controllers/ticketResponseController.js';
-import { isCurrentUser } from '../middlewares/authorization.js'; // Vérification que l'utilisateur est le bon
+import { isCurrentUser } from '../middlewares/authorization.js';
 
 const router = express.Router();
 
-// Récupérer toutes les réponses d'un ticket de support
+// Routes pour la gestion des réponses aux tickets
+// GET: Récupère toutes les réponses d'un ticket spécifique
 router.get('/:ticketId', authenticateJWT, getTicketResponses);
 
-// Ajouter une réponse à un ticket de support (seul l'utilisateur peut répondre à ses tickets)
+// POST: Crée une nouvelle réponse pour un ticket
+// Nécessite: authentification JWT + être l'utilisateur concerné
 router.post('/:ticketId', authenticateJWT, isCurrentUser, createTicketResponse);
 
 export default router;

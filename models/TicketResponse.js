@@ -1,29 +1,40 @@
+// models/TicketResponse.js
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/db.js'; // Assurez-vous que ce chemin est correct.
+import sequelize from '../config/db.js';
 
-const TicketResponse = sequelize.define('TicketResponse', {
-  supportTicketId: {
+const TicketResponse = sequelize.define('ticketresponse', {
+  ResponseID: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  TicketID: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
     references: {
-      model: 'SupportTicket', // Référence à la table 'SupportTicket'
-      key: 'id',
-    },
+      model: 'supportticket',
+      key: 'TicketID'
+    }
   },
-  response: {
+  UserID: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'user',
+      key: 'UserID'
+    }
+  },
+  ResponseText: {
     type: DataTypes.TEXT,
-    allowNull: false,
+    allowNull: false
   },
-  responder: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
+  ResponseDate: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  }
 }, {
-  timestamps: true,
-  tableName: 'ticket_responses',
+  tableName: 'ticketresponse',
+  timestamps: false
 });
-
-// Association avec SupportTicket (si nécessaire)
-TicketResponse.belongsTo(SupportTicket, { foreignKey: 'supportTicketId' });
 
 export default TicketResponse;

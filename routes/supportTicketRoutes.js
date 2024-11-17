@@ -1,20 +1,22 @@
+// routes/supportTicketRoutes.js
 import express from 'express';
-import authenticateJWT from '../middlewares/authMiddleware.js'; // Middleware pour authentification
+import authenticateJWT from '../middlewares/authMiddleware.js';
 import { getAllSupportTickets, createSupportTicket, updateSupportTicket, deleteSupportTicket } from '../controllers/supportTicketController.js';
-import { isCurrentUser } from '../middlewares/authorization.js'; // Vérification que l'utilisateur est le bon
+import { isCurrentUser } from '../middlewares/authorization.js';
 
 const router = express.Router();
 
-// Récupérer tous les tickets de support de l'utilisateur
+// Routes pour la gestion des tickets de support
+// GET: Liste tous les tickets de support (utilisateur authentifié)
 router.get('/', authenticateJWT, getAllSupportTickets);
 
-// Créer un nouveau ticket de support
+// POST: Crée un nouveau ticket de support (utilisateur authentifié)
 router.post('/', authenticateJWT, createSupportTicket);
 
-// Mettre à jour un ticket de support existant (seul l'utilisateur qui l'a créé peut le faire)
+// PUT: Modifie un ticket existant (authentification + propriétaire du ticket)
 router.put('/:ticketId', authenticateJWT, isCurrentUser, updateSupportTicket);
 
-// Supprimer un ticket de support (seul l'utilisateur qui l'a créé peut le faire)
+// DELETE: Supprime un ticket (authentification + propriétaire du ticket)
 router.delete('/:ticketId', authenticateJWT, isCurrentUser, deleteSupportTicket);
 
 export default router;
