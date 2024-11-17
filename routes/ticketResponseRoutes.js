@@ -1,17 +1,14 @@
 import express from 'express';
-import { 
-  createTicketResponse, 
-  getTicketResponseById, 
-  getAllTicketResponses, 
-  updateTicketResponse, 
-  deleteTicketResponse 
-} from './ticketResponse.controller.js';
+import authenticateJWT from '../middlewares/authMiddleware.js'; // Middleware pour authentification
+import { createTicketResponse, getTicketResponses } from '../controllers/ticketResponseController.js';
+import { isCurrentUser } from '../middlewares/authorization.js'; // Vérification que l'utilisateur est le bon
 
 const router = express.Router();
-router.post('/', createTicketResponse); 
-router.get('/', getAllTicketResponses); 
-router.get('/:id', getTicketResponseById); 
-router.put('/:id', updateTicketResponse); 
-router.delete('/:id', deleteTicketResponse);  
+
+// Récupérer toutes les réponses d'un ticket de support
+router.get('/:ticketId', authenticateJWT, getTicketResponses);
+
+// Ajouter une réponse à un ticket de support (seul l'utilisateur peut répondre à ses tickets)
+router.post('/:ticketId', authenticateJWT, isCurrentUser, createTicketResponse);
 
 export default router;

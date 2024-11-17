@@ -1,17 +1,23 @@
+// routes/faqRoutes.js
+
 import express from 'express';
-import { 
-  createFAQ, 
-  getAllFAQs, 
-  getFAQById, 
-  updateFAQ, 
-  deleteFAQ 
-} from './faq.controller.js';
+import { getAllFaqs, getFaqById, createFaq, updateFaq, deleteFaq } from '../controllers/faqController.js';
 
 const router = express.Router();
-router.post('/', createFAQ); 
-router.get('/', getAllFAQs); 
-router.get('/:id', getFAQById); 
-router.put('/:id', updateFAQ); 
-router.delete('/:id', deleteFAQ); 
+
+// Route pour obtenir toutes les FAQs
+router.get('/', getAllFaqs);
+
+// Route pour obtenir une FAQ spécifique par son ID
+router.get('/:id', getFaqById);
+
+// Route pour créer une nouvelle FAQ
+router.post('/', createFaq);
+
+// Route pour mettre à jour une FAQ existante par son ID
+router.put('/:id', updateFaq);
+
+// Route pour supprimer une FAQ par son ID
+router.delete('/:id', deleteFaq);
 
 export default router;

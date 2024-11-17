@@ -1,15 +1,18 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
 
-const faqSchema = new mongoose.Schema({
-  question: { 
-    type: String, 
-    required: true 
+const FAQ = sequelize.define('FAQ', {
+  question: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
-  answer: { 
-    type: String, 
-    required: true 
+  answer: {
+    type: DataTypes.TEXT,
+    allowNull: false,
   },
+}, {
+  timestamps: true,
+  tableName: 'faqs',
 });
 
-const FAQ = mongoose.model('FAQ', faqSchema);
 export default FAQ;

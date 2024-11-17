@@ -1,65 +1,18 @@
-import TicketResponse from './ticketResponse.model.js';
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+import SupportTicket from '../models/SupportTicket.js';  // Importation du modèle SupportTicket
+import TicketResponseModel from '../models/TicketResponse.js';  // Importation du modèle TicketResponse
 
-export const createTicketResponse = async (req, res) => {
-  try {
-    const { ticketId, response } = req.body;
-    const newResponse = new TicketResponse({ ticketId, response });
-    await newResponse.save();
-    res.status(201).json(newResponse);
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la création de la réponse' });
-  }
-};
+// Si TicketResponse a déjà été défini dans le modèle ticketResponse.model.js, pas besoin de le redéfinir ici.
+// Vous pouvez l'utiliser directement.
 
-export const getTicketResponseById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const response = await TicketResponse.findById(id);
-    if (!response) {
-      return res.status(404).json({ error: 'Réponse introuvable' });
-    }
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la récupération de la réponse' });
-  }
-};
+const TicketResponse = TicketResponseModel(sequelize, DataTypes); // Appel à la fonction exportée pour associer sequelize
 
-export const getAllTicketResponses = async (req, res) => {
-  try {
-    const responses = await TicketResponse.find();
-    res.status(200).json(responses);
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la récupération des réponses' });
-  }
-};
+// Association avec la table SupportTicket
+TicketResponse.belongsTo(SupportTicket, {
+  foreignKey: 'supportTicketId',
+  onDelete: 'CASCADE', // Si un ticket de support est supprimé, les réponses sont aussi supprimées
+});
 
-export const updateTicketResponse = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { ticketId, response } = req.body;
-    const updatedResponse = await TicketResponse.findByIdAndUpdate(
-      id,
-      { ticketId, response },
-      { new: true, runValidators: true }
-    );
-    if (!updatedResponse) {
-      return res.status(404).json({ error: 'Réponse introuvable' });
-    }
-    res.status(200).json(updatedResponse);
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la mise à jour de la réponse' });
-  }
-};
-
-export const deleteTicketResponse = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const response = await TicketResponse.findByIdAndDelete(id);
-    if (!response) {
-      return res.status(404).json({ error: 'Réponse introuvable' });
-    }
-    res.status(200).json({ message: 'Réponse supprimée avec succès' });
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la suppression de la réponse' });
-  }
-};
+// Exportation du modèle TicketResponse
+export default TicketResponse;
