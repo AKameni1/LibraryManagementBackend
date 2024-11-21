@@ -10,6 +10,9 @@ import Category from './Category.js'
 import Report from './Report.js'
 import ReportParameter from './ReportParameter.js'
 import AuditLog from './AuditLog.js'
+import FAQ from './FAQ.js'
+import SupportTicket from './SupportTicket.js'
+import TicketResponse from './TicketResponse.js'
 
 // Définition des relations entre nos models
 
@@ -60,4 +63,4 @@ Report.hasMany(ReportParameter, { foreignKey: 'ReportID', onDelete: 'CASCADE' })
 ReportParameter.belongsTo(Report, { foreignKey: 'ReportID' })
 AuditLog.belongsTo(User, { foreignKey: 'UserID' })
 
-export { User, Role, Book, Loan, Category, Reservation, Permission, UserPermission, RolePermission, Report, ReportParameter, AuditLog}
+export { User, Role, Book, Loan, Category, Reservation, Permission, UserPermission, RolePermission, Report, ReportParameter, AuditLog, FAQ, SupportTicket, TicketResponse}

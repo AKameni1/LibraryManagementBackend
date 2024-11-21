@@ -52,7 +52,55 @@ export const validateCreateReport = [
         .isArray()
         .withMessage('Parameters must be an array')
 ]
+// FAQ Validations
+export const validateCreateFAQ = [
+    body('question')
+        .notEmpty().withMessage('La question est requise.')
+        .isLength({ min: 10 }).withMessage('La question doit contenir au moins 10 caractères.'),
+    body('answer')
+        .notEmpty().withMessage('La réponse est requise.')
+        .isLength({ min: 10 }).withMessage('La réponse doit contenir au moins 10 caractères.')
+]
 
+export const validateUpdateFAQ = [
+    body('question')
+        .optional()
+        .notEmpty().withMessage('La question est requise.')
+        .isLength({ min: 10 }).withMessage('La question doit contenir au moins 10 caractères.'),
+    body('answer')
+        .optional()
+        .notEmpty().withMessage('La réponse est requise.')
+        .isLength({ min: 10 }).withMessage('La réponse doit contenir au moins 10 caractères.')
+]
+
+// Support Ticket Validations
+export const validateCreateTicket = [
+    body('subject')
+        .notEmpty().withMessage('Le sujet est requis.')
+        .isLength({ min: 5, max: 255 }).withMessage('Le sujet doit contenir entre 5 et 255 caractères.'),
+    body('description')
+        .notEmpty().withMessage('La description est requise.')
+        .isLength({ min: 20 }).withMessage('La description doit contenir au moins 20 caractères.')
+]
+
+export const validateUpdateTicketStatus = [
+    body('status')
+        .notEmpty().withMessage('Le statut est requis.')
+        .isIn(['Open', 'In Progress', 'Closed']).withMessage('Statut invalide.')
+]
+
+// Ticket Response Validations
+export const validateCreateResponse = [
+    body('responseText')
+        .notEmpty().withMessage('La réponse est requise.')
+        .isLength({ min: 10 }).withMessage('La réponse doit contenir au moins 10 caractères.')
+]
+
+export const validateUpdateResponse = [
+    body('responseText')
+        .notEmpty().withMessage('La réponse est requise.')
+        .isLength({ min: 10 }).withMessage('La réponse doit contenir au moins 10 caractères.')
+]
 export const validateUpdateReport = [
     body('title')
         .optional()
