@@ -9,6 +9,9 @@ import reservationRoutes from './reservationRoutes.js'
 import categoryRoutes from './categoryRoutes.js'
 import reportRoutes from './reportRoutes.js'
 import auditLogRoutes from './auditLogRoutes.js'
+import faqRoutes from './faqRoutes.js'
+import supportTicketRoutes from './supportTicketRoutes.js'
+import ticketResponseRoutes from './ticketResponseRoutes.js'
 
 export default {
     '/api/auth': authRoutes,
@@ -21,5 +24,8 @@ export default {
     '/api/reservations': reservationRoutes,
     '/api/categories': categoryRoutes,
     '/api/report': reportRoutes,
-    '/api/audit-log': auditLogRoutes
+    '/api/audit-log': auditLogRoutes,
+    '/api/faqs': faqRoutes,
+    '/api/tickets': supportTicketRoutes,
+    '/api/tickets/responses': ticketResponseRoutes
 }
