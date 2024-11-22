@@ -9,6 +9,7 @@ import {
     updateTicketStatus,
     searchTickets
 } from '../controllers/supportTicketController.js'
+import { auditLogMiddleware } from '../middlewares/auditLogMiddleware.js'
 
 const router = express.Router()
 
@@ -16,10 +17,10 @@ const router = express.Router()
 router.use(authenticateJWT)
 
 // Routes pour la gestion des tickets
-router.get('/', getTickets) // Admin voit tout, utilisateur voit ses tickets
-router.get('/search', searchTickets) // Recherche de tickets avec filtres
-router.get('/:ticketId', getTicketById)
-router.post('/', validateCreateTicket, createTicket)
-router.patch('/:ticketId/status', validateUpdateTicketStatus, updateTicketStatus)
+router.get('/', authenticateJWT, getTickets) // Admin voit tout, utilisateur voit ses tickets
+router.get('/search', authenticateJWT, searchTickets) // Recherche de tickets avec filtres
+router.get('/:ticketId', authenticateJWT, getTicketById)
+router.post('/', authenticateJWT, validateCreateTicket, auditLogMiddleware('createTicket'), createTicket)
+router.patch('/:ticketId/status', authenticateJWT, validateUpdateTicketStatus, auditLogMiddleware('udpateTicket'), updateTicketStatus)
 
 export default router

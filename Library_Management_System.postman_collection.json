@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "5ea770cd-c57c-4d06-b040-f66ef3b24e65",
+		"_postman_id": "9b33855f-f440-4ed9-82e1-d184edf391b8",
 		"name": "Library Management System",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "38567221"
+		"_exporter_id": "38101707"
 	},
 	"item": [
 		{
@@ -14,12 +14,33 @@
 					"item": [
 						{
 							"name": "Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const response = pm.response.json();\r",
+											"\r",
+											"// Vérifie que les tokens sont présents dans la réponse\r",
+											"if (response.token && response.refreshToken) {\r",
+											"    pm.environment.set('authToken', response.token);\r",
+											"    pm.environment.set('refreshToken', response.refreshToken);\r",
+											"} else {\r",
+											"    console.error('Erreur : Les tokens ne sont pas présents dans la réponse.');\r",
+											"}\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"method": "POST",
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"username\": \"your_username\",\n    \"email\": \"your_email@example.com\"\n}",
+									"raw": "{\n    \"username\": \"username\",\n    \"email\": \"email.user@gmail.com\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -248,6 +269,54 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "RefreshToken",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const response = pm.response.json();\r",
+											"\r",
+											"// Vérifie que le nouveau token est présent dans la réponse\r",
+											"if (response.accessToken) {\r",
+											"    pm.environment.set('authToken', response.accessToken);\r",
+											"} else {\r",
+											"    console.error('Erreur : Nouveau token non reçu.');\r",
+											"}\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"refreshToken\":\"{{refreshToken}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/refresh-token",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"refresh-token"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -296,7 +365,7 @@
 										}
 									]
 								},
-								"method": "PUT",
+								"method": "PATCH",
 								"header": [],
 								"body": {
 									"mode": "raw",
@@ -308,20 +377,14 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/api/users/:userId",
+									"raw": "{{baseUrl}}/api/users/me",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
 										"api",
 										"users",
-										":userId"
-									],
-									"variable": [
-										{
-											"key": "userId",
-											"value": "1"
-										}
+										"me"
 									]
 								}
 							},
@@ -524,6 +587,16 @@
 						{
 							"name": "Get All Books",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "GET",
 								"header": [],
 								"url": {
@@ -542,6 +615,16 @@
 						{
 							"name": "Get Book by ID",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "GET",
 								"header": [],
 								"url": {
@@ -567,6 +650,16 @@
 						{
 							"name": "Create Book",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [],
 								"body": {
@@ -594,6 +687,16 @@
 						{
 							"name": "Update Book",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "PATCH",
 								"header": [],
 								"body": {
@@ -628,6 +731,16 @@
 						{
 							"name": "Delete Book",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "DELETE",
 								"header": [],
 								"url": {
@@ -653,6 +766,16 @@
 						{
 							"name": "Get Books by Category",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "GET",
 								"header": [],
 								"url": {
@@ -1194,6 +1317,256 @@
 									]
 								},
 								"description": "Requires SuperAdmin role"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Permission",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/permissions/:permissionId",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"permissions",
+										":permissionId"
+									],
+									"variable": [
+										{
+											"key": "permissionId",
+											"value": "28"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Permission Role",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/permissions/:roleId/permissions-role",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"permissions",
+										":roleId",
+										"permissions-role"
+									],
+									"variable": [
+										{
+											"key": "roleId",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Revoke Permission to Role",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"permissionIds\": [2]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/permissions/:roleId/revoke-permission-role",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"permissions",
+										":roleId",
+										"revoke-permission-role"
+									],
+									"variable": [
+										{
+											"key": "roleId",
+											"value": "4"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Permission to Role",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"permissionIds\": []\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/permissions/:roleId/add-permission-role",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"permissions",
+										":roleId",
+										"add-permission-role"
+									],
+									"variable": [
+										{
+											"key": "roleId",
+											"value": "4"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Permission",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"updated_permission\",\r\n    \"description\": \"updated_description\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/permissions/:permissionId",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"permissions",
+										":permissionId"
+									],
+									"variable": [
+										{
+											"key": "permissionId",
+											"value": "28"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Revoke Permission to User",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{authToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"permissionId\": 2\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/permissions/:userId/revoke-permission-user",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"permissions",
+										":userId",
+										"revoke-permission-user"
+									],
+									"variable": [
+										{
+											"key": "userId",
+											"value": "2"
+										}
+									]
+								}
 							},
 							"response": []
 						}
@@ -1845,6 +2218,45 @@
 					]
 				}
 			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
 		}
 	]
 }

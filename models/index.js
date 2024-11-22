@@ -17,8 +17,8 @@ import TicketResponse from './TicketResponse.js'
 // Définition des relations entre nos models
 
 // Relation entre User et Role
-User.belongsTo(Role, { foreignKey: 'RoleId', as: 'Role' })
-Role.hasMany(User, { foreignKey: 'RoleId' })
+User.belongsTo(Role, { foreignKey: 'RoleID', as: 'Role' })
+Role.hasMany(User, { foreignKey: 'RoleID' })
 
 
 // Relation entre User et Permission via UserPermission

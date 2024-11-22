@@ -44,7 +44,12 @@ npm install
 4. **Configuration de l'environnement**
 - Copier le contenu depuis le fichier .env.example
 
-5. **Démarrer le serveur**
+5. **Création du super-admin**
+```bash
+node createSuperAdmin.js
+```
+
+6. **Démarrer le serveur**
 ```bash
 # Mode développement
 npm run dev

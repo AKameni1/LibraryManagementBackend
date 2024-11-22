@@ -1,10 +1,14 @@
 import { User, Role } from '../models/index.js'
 import { promoteUserRole, downgradeUserRole } from './roleController.js'
-import { addPermission, revokePermission, getPermissionsOfUser } from './permissionController.js'
+import {
+    addPermission,
+    revokePermission,
+    getPermissionsOfUser,
+} from './permissionController.js'
+import { logAction } from './auditLogController.js'
 import { Op } from 'sequelize'
 import bcrypt from 'bcryptjs'
 import { handleError } from '../utils/handleError.js'
-
 
 export const createSuperAdmin = async (req, res) => {
     const { username, email, password } = req.body
@@ -14,10 +18,28 @@ export const createSuperAdmin = async (req, res) => {
     }
 
     try {
+        const existingSuperAdmin = await User.findOne({
+            where: {
+                RoleID: await Role.findOne({
+                    where: { Name: 'superAdmin' },
+                }).then((role) => role.RoleID),
+            },
+        })
+
+        if (existingSuperAdmin) {
+            return res
+                .status(403)
+                .json({ message: 'Le super administrateur existe déjà.' })
+        }
+
         // Cherchez le rôle SuperAdmin
-        const superAdminRole = await Role.findOne({ where: { Name: 'superAdmin' } })
+        const superAdminRole = await Role.findOne({
+            where: { Name: 'superAdmin' },
+        })
         if (!superAdminRole) {
-            return res.status(400).json({ message: 'Rôle superAdmin non trouvé.' })
+            return res
+                .status(400)
+                .json({ message: 'Rôle superAdmin non trouvé.' })
         }
 
         // Créez le super administrateur
@@ -25,12 +47,19 @@ export const createSuperAdmin = async (req, res) => {
             Username: username,
             Email: email,
             Password: password,
-            RoleID: superAdminRole.RoleID
+            RoleID: superAdminRole.RoleID,
         })
 
-        res.status(201).json({ message: 'Super administrateur créé avec succès', user: superAdmin })
+        res.status(201).json({
+            message: 'Super administrateur créé avec succès',
+            user: superAdmin,
+        })
     } catch (error) {
-        handleError(res, 'Erreur lors de la création du super administrateur', error)
+        handleError(
+            res,
+            'Erreur lors de la création du super administrateur',
+            error
+        )
     }
 }
 
@@ -41,41 +70,56 @@ export const createUser = async (req, res) => {
 
     // Vérifie si les données sont présentes
     if (!username || !email || !password) {
-        return res.status(400).json({ message: 'Tous les champs sont requis.' });
-    }    
+        return res.status(400).json({ message: 'Tous les champs sont requis.' })
+    }
 
-    try {  
-
-        const defaultRole = await Role.findOne({ where: { Name: 'client' } });
+    try {
+        const defaultRole = await Role.findOne({ where: { Name: 'client' } })
 
         if (!defaultRole) {
-            return res.status(400).json({ message: 'Rôle client non trouvé.' });
+            return res.status(400).json({ message: 'Rôle client non trouvé.' })
         }
 
         // Vérification si l'utilisateur existe déjà
         const existingUser = await User.findOne({
             where: {
-              [Op.or]: [
-                { Username: username },
-                { Email: email }
-              ]
-            }
-          })
+                [Op.or]: [{ Username: username }, { Email: email }],
+            },
+        })
         if (existingUser) {
-            return res.status(400).json({ message: `L'utilisateur ${existingUser.Username} existe déjà.` })
+            return res.status(400).json({
+                message: `L'utilisateur ${existingUser.Username} existe déjà.`,
+            })
         }
-        
+
         console.log(password)
         // Hachage du mot de passe
         const hashedPassword = await bcrypt.hash(password, 10)
 
         console.log(hashedPassword)
-        
-        const newUser = await User.create({ Username: username, Email: email, Password: hashedPassword, RoleID: defaultRole.RoleID })
 
-        res.status(201).json({ message: 'Utilisateur créé avec succès.', user: newUser })
+        const newUser = await User.create({
+            Username: username,
+            Email: email,
+            Password: hashedPassword,
+            RoleID: defaultRole.RoleID,
+        })
+
+        // Enregistrement de l'action
+        await logAction(req.user.userId || null, 'User', 'createUser', {
+            newUser,
+        })
+
+        res.status(201).json({
+            message: 'Utilisateur créé avec succès.',
+            user: newUser,
+        })
     } catch (error) {
-        handleError(res, 'Erreur survenu lors de la création de l\'utilisateur', error)
+        handleError(
+            res,
+            "Erreur survenu lors de la création de l'utilisateur",
+            error
+        )
     }
 }
 
@@ -85,13 +129,17 @@ export const getUsers = async (req, res) => {
         const users = await User.findAll()
         res.json(users)
     } catch (error) {
-        handleError(res, 'Erreur lors de la récupération des utilisateurs.', error)
+        handleError(
+            res,
+            'Erreur lors de la récupération des utilisateurs.',
+            error
+        )
     }
 }
 
 // Obtenir un user par son id
 export const getUserById = async (req, res) => {
-    const { id } = req.params 
+    const { id } = req.params
     try {
         const user = await User.findByPk(id)
 
@@ -101,14 +149,18 @@ export const getUserById = async (req, res) => {
 
         res.json(user)
     } catch (error) {
-        handleError(res, 'Erreur lors de la récupération de l\'utilisateur.', error)        
+        handleError(
+            res,
+            "Erreur lors de la récupération de l'utilisateur.",
+            error
+        )
     }
 }
 
 // Supprimer un utilisateur
 export const deleteUser = async (req, res) => {
     const { userId } = req.params
-    
+
     try {
         const user = await User.findByPk(userId)
 
@@ -117,10 +169,16 @@ export const deleteUser = async (req, res) => {
         }
 
         await user.destroy()
-        res.status(200).json({ message: `L'utilisateur ${user.Username} a été supprimé avec succès.` })
+        res.status(200).json({
+            message: `L'utilisateur ${user.Username} a été supprimé avec succès.`,
+        })
     } catch (error) {
         console.error(error)
-        handleError(res, 'Erreur lors de la suppression de l\'utilisateur.', error)        
+        handleError(
+            res,
+            "Erreur lors de la suppression de l'utilisateur.",
+            error
+        )
     }
 }
 
@@ -142,11 +200,18 @@ export const toggleUserActivation = async (req, res) => {
 
         user.IsActive = isActive
         await user.save()
-        
+
         const statusMessage = isActive ? 'activé' : 'désactivé'
-        res.json({ message: `Utilisateur ${statusMessage} avec succès.`, user: user })
+        res.json({
+            message: `Utilisateur ${statusMessage} avec succès.`,
+            user: user,
+        })
     } catch (error) {
-        handleError(res, 'Erreur lors de la désactivation de l\'utilisateur.', error)
+        handleError(
+            res,
+            "Erreur lors de la désactivation de l'utilisateur.",
+            error
+        )
     }
 }
 
@@ -161,6 +226,12 @@ export const promoteUser = async (req, res) => {
 
     try {
         await promoteUserRole(userId, newRoleId)
+
+        await logAction(req.user.userId, 'Role', 'promoteUser', {
+            targetUserId: userId,
+            newRoleId: newRoleId,
+        })
+
         res.status(200).json({ message: 'Utilisateur promu avec succès' })
     } catch (error) {
         handleError(res, 'Erreur du serveur', error)
@@ -173,6 +244,10 @@ export const downgradeUser = async (req, res) => {
 
     try {
         await downgradeUserRole(userId)
+
+        await logAction(req.user.userId, 'Role', 'downgradeUser', {
+            targetUserId: userId,
+        })
         res.status(200).json({ message: 'Utilisateur rétrogradé avec succès' })
     } catch (error) {
         handleError(res, 'Erreur du serveur', error)
@@ -190,9 +265,15 @@ export const addPermissionToUser = async (req, res) => {
 
     try {
         await addPermission(userId, permissionId)
-        res.status(200).json({ message: 'Permission ajoutée à l\'utilisateur avec succès.' })
+        res.status(200).json({
+            message: "Permission ajoutée à l'utilisateur avec succès.",
+        })
     } catch (error) {
-        handleError(res, 'Erreur lors de l\'ajout de la permission à l\'utilisateur', error)
+        handleError(
+            res,
+            "Erreur lors de l'ajout de la permission à l'utilisateur",
+            error
+        )
     }
 }
 
@@ -207,9 +288,15 @@ export const revokePermissionFromUser = async (req, res) => {
 
     try {
         await revokePermission(userId, permissionId)
-        res.status(200).json({ message: 'Permission révoquée de l\'utilisateur avec succès.' })
+        res.status(200).json({
+            message: "Permission révoquée de l'utilisateur avec succès.",
+        })
     } catch (error) {
-        handleError(res, 'Erreur lors de la suppression de la permission de l\'utilisateur', error)
+        handleError(
+            res,
+            "Erreur lors de la suppression de la permission de l'utilisateur",
+            error
+        )
     }
 }
 
@@ -221,7 +308,11 @@ export const getUserPermissions = async (req, res) => {
         const permissions = await getPermissionsOfUser(userId)
         res.status(200).json({ permissions: permissions })
     } catch (error) {
-        handleError(res, 'Erreur lors de la récupération des permissions', error)
+        handleError(
+            res,
+            'Erreur lors de la récupération des permissions',
+            error
+        )
     }
 }
 

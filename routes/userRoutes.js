@@ -13,8 +13,7 @@ router.get('/profile', authenticateJWT, getUserInfo)
 
 router.post('/create', validateCreateUser, createUser)
 
-router.put('/:userId', authenticateJWT, isCurrentUser, validateUpdateUser, updateUser)
-router.patch('/:userId', authenticateJWT, isCurrentUser, validateUpdateUser, updateUser)
+router.patch('/me', authenticateJWT, isCurrentUser, validateUpdateUser, updateUser)
 
 
 export default router

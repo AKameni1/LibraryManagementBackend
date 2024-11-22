@@ -1,14 +1,14 @@
 import express from 'express'
 import authenticateJWT from '../middlewares/authMiddleware.js'
-import { isAdmin } from '../middlewares/authorization.js'
+import { isAdmin, isSuperAdmin } from '../middlewares/authorization.js'
 import {
     getAuditLogs,
-    getAuditLogsByUser
+    getAuditLogsByUser,
 } from '../controllers/auditLogController.js'
 
 const router = express.Router()
 
-router.get('/', authenticateJWT, isAdmin, getAuditLogs)
-router.get('/user/:userId', authenticateJWT, isAdmin, getAuditLogsByUser)
+router.get('/', authenticateJWT, isSuperAdmin, getAuditLogs)
+router.get('/user/:userId', authenticateJWT, isSuperAdmin, getAuditLogsByUser)
 
 export default router
