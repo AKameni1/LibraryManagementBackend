@@ -55,8 +55,12 @@ export const logAction = async (userId, entity, action, details) => {
 }
 
 export const getAuditLogs = async (req, res) => {
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Entre 1 et 100
+    const offset = (page - 1) * limit
+
     try {
-        const logs = await AuditLog.findAll({
+        const { rows: logs, count: total } = await AuditLog.findAndCountAll({
             include: [
                 {
                     model: User,
@@ -64,9 +68,17 @@ export const getAuditLogs = async (req, res) => {
                 },
             ],
             order: [['CreatedAt', 'DESC']],
-            limit: 100, // Basic pagination
+            limit: parseInt(limit),
+            offset: parseInt(offset),
         })
-        res.status(200).json(logs)
+
+        res.status(200).json({
+            total: total, // Nombre total de logs
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            logs: logs, // Logs pour cette page
+        })
     } catch (error) {
         handleError(res, 'Error retrieving audit logs', error)
     }
@@ -74,9 +86,12 @@ export const getAuditLogs = async (req, res) => {
 
 export const getAuditLogsByUser = async (req, res) => {
     const { userId } = req.params
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Entre 1 et 100
+    const offset = (page - 1) * limit
 
     try {
-        const logs = await AuditLog.findAll({
+        const { rows: logs, count: total } = await AuditLog.findAndCountAll({
             where: { UserID: userId },
             include: [
                 {
@@ -85,9 +100,17 @@ export const getAuditLogsByUser = async (req, res) => {
                 },
             ],
             order: [['CreatedAt', 'DESC']],
-            limit: 100,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
         })
-        res.status(200).json(logs)
+
+        res.status(200).json({
+            total: total, // Nombre total de logs pour cet utilisateur
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            logs: logs, // Logs pour cette page
+        })
     } catch (error) {
         handleError(res, 'Error retrieving user audit logs', error)
     }

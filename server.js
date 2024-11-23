@@ -3,11 +3,13 @@ import dotenv from 'dotenv'
 import routes from './routes/index.js'
 import sequelize from './config/db.js'
 import './utils/scheduler.js'
+import cookieParser from 'cookie-parser'
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 
 
 // Utilisation des routes

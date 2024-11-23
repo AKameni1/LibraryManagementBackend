@@ -3,25 +3,32 @@ import { handleError } from '../utils/handleError.js'
 // import { sendEmailNotification } from '../utils/notificationHelper.js'
 import { checkBookAvailability } from './loanController.js'
 
-
 // Créer une réservation
 export const createReservation = async (req, res) => {
     const { userId } = req.params
     const { bookId, reservationEndDate } = req.body
-    try { 
-        const endDate = reservationEndDate || new Date(new Date().setDate(new Date().getDate() + 7))
-        
+    try {
+        const endDate =
+            reservationEndDate ||
+            new Date(new Date().setDate(new Date().getDate() + 7))
+
         const bookStatus = await checkBookAvailability(bookId)
         if (!bookStatus) {
-            return res.status(400).json({ message: "Le livre est déjà réservé ou emprunté." })
+            return res
+                .status(400)
+                .json({ message: 'Le livre est déjà réservé ou emprunté.' })
         }
         const book = await Book.findByPk(bookId)
         book.update({ Availability: 'Reserved' })
 
-        const reservation = await Reservation.create({ UserID: userId, BookID: bookId, ReservationEndDate: endDate })
+        const reservation = await Reservation.create({
+            UserID: userId,
+            BookID: bookId,
+            ReservationEndDate: endDate,
+        })
         res.status(201).json({ reservation })
     } catch (error) {
-        handleError(res, 'Erreur du serveur.', error)        
+        handleError(res, 'Erreur du serveur.', error)
     }
 }
 
@@ -33,9 +40,11 @@ export const cancelReservation = async (req, res) => {
         if (!reservation) {
             return res.status(404).json({ message: 'Réservation non trouvée.' })
         }
-        
+
         if (reservation.Status !== 'Reserved') {
-            return res.status(400).json({ message: 'Cette réservation ne peut pas être annulée.' });
+            return res.status(400).json({
+                message: 'Cette réservation ne peut pas être annulée.',
+            })
         }
 
         await reservation.update({ Status: 'Cancelled' })
@@ -53,9 +62,27 @@ export const cancelReservation = async (req, res) => {
 // Voir les réservations de l'utilisateur
 export const getUserReservations = async (req, res) => {
     const { userId } = req.user
+
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Limité entre 1 et 100
+    const offset = (page - 1) * limit
+
     try {
-        const reservations = await Reservation.findAll({ where: { UserID: userId } })
-        res.status(200).json(reservations)
+        const { rows: reservations, count: total } =
+            await Reservation.findAndCountAll({
+                where: { UserID: userId },
+                limit: limit,
+                offset: offset,
+                order: [['CreatedAt', 'DESC']],
+            })
+
+        res.status(200).json({
+            total: total, // Nombre total de réservations
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            reservations: reservations, // Liste des réservations pour cette page
+        })
     } catch (error) {
         handleError(res, 'Erreur du serveur.', error)
     }
@@ -77,7 +104,6 @@ export const getUserReservations = async (req, res) => {
 //         console.log('Reservation:', reservation);
 //         console.log('User in Reservation:', reservation ? reservation.User : 'No user found')
 
-
 //         // Vérifier si l'utilisateur est lié à la réservation
 //         // if (!reservation.User) {
 //         //     return res.status(404).json({ message: 'Utilisateur associé non trouvé pour cette réservation.' });
@@ -86,8 +112,6 @@ export const getUserReservations = async (req, res) => {
 //         if (!reservation) {
 //             res.status(404).json({ message: 'Aucune réservation trouvée pour ce livre.' })
 //         }
-
-        
 
 //         await sendEmailNotification(reservation.UserID, 'Votre livre réservé est disponible', 'Le livre est maintenant disponible.')
 //         reservation.Status = 'Notification Sent'

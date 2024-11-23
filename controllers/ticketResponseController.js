@@ -5,6 +5,10 @@ import { TicketResponse, SupportTicket, User } from '../models/index.js'
 export const getTicketResponses = async (req, res) => {
     const { ticketId } = req.params
 
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Limité entre 1 et 100
+    const offset = (page - 1) * limit
+
     try {
         // Vérifier d'abord si le ticket existe
         const ticket = await SupportTicket.findByPk(ticketId)
@@ -15,23 +19,38 @@ export const getTicketResponses = async (req, res) => {
         // Vérifier si l'utilisateur a le droit de voir les réponses
         const isAdmin = ['admin', 'superAdmin'].includes(req.user.role)
         if (!isAdmin && ticket.UserID !== req.user.userId) {
-            return res.status(403).json({ message: 'Accès non autorisé aux réponses de ce ticket' })
+            return res.status(403).json({
+                message: 'Accès non autorisé aux réponses de ce ticket',
+            })
         }
 
-        const responses = await TicketResponse.findAll({
-            where: { TicketID: ticketId },
-            include: [{
-                model: User,
-                as: 'User',
-                attributes: ['Username', 'Email']
-            }],
-            order: [['ResponseDate', 'ASC']]
-        })
+        const { rows: responses, count: total } =
+            await TicketResponse.findAndCountAll({
+                where: { TicketID: ticketId },
+                include: [
+                    {
+                        model: User,
+                        as: 'User',
+                        attributes: ['Username', 'Email'],
+                    },
+                ],
+                order: [['ResponseDate', 'ASC']],
+                limit: limit,
+                offset: offset,
+            })
 
-        res.status(200).json(responses)
+        res.status(200).json({
+            total: total, // Nombre total de rapports
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            responses: responses, // Liste des rapports pour cette page
+        })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la récupération des réponses' })
+        res.status(500).json({
+            message: 'Erreur lors de la récupération des réponses',
+        })
     }
 }
 
@@ -53,19 +72,23 @@ export const addTicketResponse = async (req, res) => {
         }
 
         if (ticket.Status === 'Closed') {
-            return res.status(400).json({ message: 'Impossible d\'ajouter une réponse à un ticket fermé' })
+            return res.status(400).json({
+                message: "Impossible d'ajouter une réponse à un ticket fermé",
+            })
         }
 
         // Vérifier si l'utilisateur a le droit de répondre
         const isAdmin = ['admin', 'superAdmin'].includes(req.user.role)
         if (!isAdmin && ticket.UserID !== req.user.userId) {
-            return res.status(403).json({ message: 'Vous n\'avez pas le droit de répondre à ce ticket' })
+            return res.status(403).json({
+                message: "Vous n'avez pas le droit de répondre à ce ticket",
+            })
         }
 
         const newResponse = await TicketResponse.create({
             TicketID: ticketId,
             UserID: req.user.userId,
-            ResponseText: responseText
+            ResponseText: responseText,
         })
 
         // Si l'utilisateur n'est pas admin, mettre à jour le statut du ticket en "In Progress"
@@ -73,21 +96,28 @@ export const addTicketResponse = async (req, res) => {
             await ticket.update({ Status: 'In Progress' })
         }
 
-        const responseWithUser = await TicketResponse.findByPk(newResponse.ResponseID, {
-            include: [{
-                model: User,
-                as: 'User',
-                attributes: ['Username', 'Email']
-            }]
-        })
+        const responseWithUser = await TicketResponse.findByPk(
+            newResponse.ResponseID,
+            {
+                include: [
+                    {
+                        model: User,
+                        as: 'User',
+                        attributes: ['Username', 'Email'],
+                    },
+                ],
+            }
+        )
 
         res.status(201).json({
             message: 'Réponse ajoutée avec succès',
-            response: responseWithUser
+            response: responseWithUser,
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de l\'ajout de la réponse' })
+        res.status(500).json({
+            message: "Erreur lors de l'ajout de la réponse",
+        })
     }
 }
 
@@ -103,10 +133,12 @@ export const updateTicketResponse = async (req, res) => {
 
     try {
         const response = await TicketResponse.findByPk(responseId, {
-            include: [{
-                model: SupportTicket,
-                as: 'Ticket'
-            }]
+            include: [
+                {
+                    model: SupportTicket,
+                    as: 'Ticket',
+                },
+            ],
         })
 
         if (!response) {
@@ -115,26 +147,32 @@ export const updateTicketResponse = async (req, res) => {
 
         // Vérifier si le ticket est fermé
         if (response.Ticket.Status === 'Closed') {
-            return res.status(400).json({ message: 'Impossible de modifier une réponse d\'un ticket fermé' })
+            return res.status(400).json({
+                message: "Impossible de modifier une réponse d'un ticket fermé",
+            })
         }
 
         // Seul l'auteur de la réponse ou un admin peut la modifier
         const isAdmin = ['admin', 'superAdmin'].includes(req.user.role)
         if (!isAdmin && response.UserID !== req.user.userId) {
-            return res.status(403).json({ message: 'Vous n\'avez pas le droit de modifier cette réponse' })
+            return res.status(403).json({
+                message: "Vous n'avez pas le droit de modifier cette réponse",
+            })
         }
 
         const updatedResponse = await response.update({
-            ResponseText: responseText
+            ResponseText: responseText,
         })
 
         res.status(200).json({
             message: 'Réponse mise à jour avec succès',
-            response: updatedResponse
+            response: updatedResponse,
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la mise à jour de la réponse' })
+        res.status(500).json({
+            message: 'Erreur lors de la mise à jour de la réponse',
+        })
     }
 }
 
@@ -144,10 +182,12 @@ export const deleteTicketResponse = async (req, res) => {
 
     try {
         const response = await TicketResponse.findByPk(responseId, {
-            include: [{
-                model: SupportTicket,
-                as: 'Ticket'
-            }]
+            include: [
+                {
+                    model: SupportTicket,
+                    as: 'Ticket',
+                },
+            ],
         })
 
         if (!response) {
@@ -156,13 +196,18 @@ export const deleteTicketResponse = async (req, res) => {
 
         // Vérifier si le ticket est fermé
         if (response.Ticket.Status === 'Closed') {
-            return res.status(400).json({ message: 'Impossible de supprimer une réponse d\'un ticket fermé' })
+            return res.status(400).json({
+                message:
+                    "Impossible de supprimer une réponse d'un ticket fermé",
+            })
         }
 
         // Seul l'auteur de la réponse ou un admin peut la supprimer
         const isAdmin = ['admin', 'superAdmin'].includes(req.user.role)
         if (!isAdmin && response.UserID !== req.user.userId) {
-            return res.status(403).json({ message: 'Vous n\'avez pas le droit de supprimer cette réponse' })
+            return res.status(403).json({
+                message: "Vous n'avez pas le droit de supprimer cette réponse",
+            })
         }
 
         await response.destroy()
@@ -170,6 +215,8 @@ export const deleteTicketResponse = async (req, res) => {
         res.status(200).json({ message: 'Réponse supprimée avec succès' })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la suppression de la réponse' })
+        res.status(500).json({
+            message: 'Erreur lors de la suppression de la réponse',
+        })
     }
 }

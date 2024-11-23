@@ -9,9 +9,23 @@ import sequelize from '../config/db.js'
 
 // Récupérer tous les rôles
 export const getAllRoles = async (req, res) => {
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Entre 1 et 100
+    const offset = (page - 1) * limit
+
     try {
-        const roles = await Role.findAll()
-        res.status(200).json(roles)
+        const { rows: roles, count: total } = await Role.findAndCountAll({
+            limit: limit,
+            offset: offset,
+        })
+
+        res.status(200).json({
+            total: total, // Nombre total de rôle
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            roles: roles,
+        })
     } catch (error) {
         handleError(res, 'Erreur lors de la récupération des rôles', error)
     }
@@ -38,6 +52,10 @@ export const getRoleById = async (req, res) => {
 export const getUsersByRole = async (req, res) => {
     const { roleName } = req.params
 
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10))
+    const offset = (page - 1) * limit
+
     try {
         const role = await Role.findOne({ where: { Name: roleName } })
 
@@ -45,9 +63,20 @@ export const getUsersByRole = async (req, res) => {
             return res.status(404).json({ message: 'Rôle non trouvé' })
         }
 
-        const users = await User.findAll({ where: { RoleID: role.RoleID } })
+        const { rows: users, count: total } = await User.findAndCountAll({
+            where: { RoleID: role.RoleID },
+            limit: limit,
+            offset: offset,
+            order: [['CreatedAt', 'DESC']],
+        })
 
-        res.status(200).json(users)
+        res.status(200).json({
+            total: total, // Nombre total d'utilisateurs
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            users: users,
+        })
     } catch (error) {
         console.error(error)
         handleError(
@@ -116,12 +145,14 @@ export const addPermissionsToRole = async (req, res) => {
         }
 
         const existingPermissions = await Permission.findAll({
-            where: { id: permissionIds },
-            attributes: ['id'],
+            where: { PermissionID: permissionIds },
+            attributes: ['PermissionID'],
             transaction,
         })
 
-        const existingPermissionIds = existingPermissions.map((perm) => perm.id)
+        const existingPermissionIds = existingPermissions.map(
+            (perm) => perm.PermissionID
+        )
         const invalidPermissionIds = permissionIds.filter(
             (id) => !existingPermissionIds.includes(id)
         )
@@ -208,7 +239,7 @@ export const revokePermissionsFromRole = async (req, res) => {
 
         res.status(200).json({
             message: 'Permissions supprimées du rôle avec succès.',
-            removedPermissions,
+            removedPermissions: removedPermissions,
             invalidPermissions:
                 invalidPermissionIds.length > 0
                     ? invalidPermissionIds
@@ -239,7 +270,10 @@ export const getPermissionsOfRole = async (req, res) => {
         // Récupérer les permissions avec la fonction utilitaire
         const permissions = await getPermissionsRole(roleId)
 
-        res.status(200).json({ permissions })
+        res.status(200).json({
+            role: role.Name,
+            permissions: permissions,
+        })
     } catch (error) {
         handleError(
             res,

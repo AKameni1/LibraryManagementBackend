@@ -125,9 +125,24 @@ export const createUser = async (req, res) => {
 
 // Obtenir tous les utilisateurs
 export const getUsers = async (req, res) => {
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Entre 1 et 100
+    const offset = (page - 1) * limit
+
     try {
-        const users = await User.findAll()
-        res.json(users)
+        const { rows: users, count: total } = await User.findAndCountAll({
+            attributes: { exclude: ['Password'] },
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+        })
+
+        res.json({
+            total: total,
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Calculer le nombre total de pages
+            users: users, // Liste des utilisateurs pour cette page
+        })
     } catch (error) {
         handleError(
             res,
@@ -141,7 +156,9 @@ export const getUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
     const { id } = req.params
     try {
-        const user = await User.findByPk(id)
+        const user = await User.findByPk(id, {
+            attributes: { exclude: ['Password'] },
+        })
 
         if (!user) {
             return res.status(404).json({ message: 'Utilisateur non trouvé.' })

@@ -9,9 +9,24 @@ import { handleError } from '../utils/handleError.js'
 
 // Récupérer toutes les permissions
 export const getPermissions = async (req, res) => {
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Limité entre 1 et 100
+    const offset = (page - 1) * limit
+
     try {
-        const permissions = await Permission.findAll()
-        res.status(200).json(permissions)
+        const { rows: permissions, count: total } =
+            await Permission.findAndCountAll({
+                limit: limit,
+                offset: offset,
+            })
+
+        res.status(200).json({
+            total: total, // Nombre total de permissions
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            permissions: permissions, // Liste des permissions pour cette page
+        })
     } catch (error) {
         handleError(res, 'Erreur serveur', error)
     }

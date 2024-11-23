@@ -4,7 +4,6 @@ import { generateToken, generateRefreshToken } from '../utils/authHelpers.js'
 import { handleError } from '../utils/handleError.js'
 import jwt from 'jsonwebtoken'
 
-
 export const loginUser = async (req, res) => {
     // Vérification des erreurs de validation
     const errors = validationResult(req)
@@ -12,34 +11,52 @@ export const loginUser = async (req, res) => {
         return res.status(400).json({ errors: errors.array() })
     }
     console.log(req.body)
-    
+
     const { username, email } = req.body
 
     try {
-        const user = await User.findOne({ where: { Username: username, Email: email } })    
+        const user = await User.findOne({
+            where: { Username: username, Email: email },
+        })
         console.log(user)
-        
+
         if (!user) {
-            return res.status(400).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' })
+            return res
+                .status(400)
+                .json({
+                    message: "Nom d'utilisateur ou mot de passe incorrect",
+                })
         }
 
         if (!user.IsActive) {
-            return res.status(403).json({ message: `Votre compte a été suspendu. Veuillez adresser une requete à l'adresse. ${process.env.EMAIL_USER}` })
+            return res
+                .status(403)
+                .json({
+                    message: `Votre compte a été suspendu. Veuillez adresser une requete à l'adresse. ${process.env.EMAIL_USER}`,
+                })
         }
-        
+
         // const isMatch = bcrypt.compareSync(bcrypt.hashSync(password), user.Password)
 
         // console.log(`password match: ${isMatch}`)
-        
 
         // if (!isMatch) {
         //     return res.status(400).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' })
         // }
-        
+
         const token = await generateToken(user)
         const refreshToken = generateRefreshToken(user)
 
-        return res.status(200).json({ token: token, refreshToken: refreshToken })
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // Utilise SSL en production
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
+
+        return res
+            .status(200)
+            .json({ token: token})
     } catch (err) {
         console.error(err)
         handleError(res, 'Erreur provenant du serveur', err)
@@ -47,7 +64,7 @@ export const loginUser = async (req, res) => {
 }
 
 export const refreshAccessToken = async (req, res) => {
-    const { refreshToken } = req.body
+    const refreshToken = req.cookies.refreshToken
 
     if (!refreshToken) {
         return res.status(400).json({ message: 'Refresh token manquant' })
@@ -72,4 +89,9 @@ export const refreshAccessToken = async (req, res) => {
         console.error(err)
         return handleError(res, 'Erreur lors du renouvellement du token', err)
     }
+}
+
+export const logoutUser = (req, res) => {
+    res.clearCookie('refreshToken')
+    res.json({ message: 'Déconnecté avec succès' })
 }

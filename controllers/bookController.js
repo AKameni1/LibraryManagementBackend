@@ -3,28 +3,45 @@ import { handleError } from '../utils/handleError.js'
 
 // Obtenir la liste de tous les livres
 export const getAllBooks = async (req, res) => {
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Entre 1 et 100
+    const offset = (page - 1) * limit
+
     try {
-        const books = await Book.findAll({
-            include: [{
-                model: Category,
-                attributes: ['CategoryName']
-            }]
+        const { rows: books, count: total } = await Book.findAndCountAll({
+            include: [
+                {
+                    model: Category,
+                    attributes: ['CategoryName'],
+                },
+            ],
+            order: [['CreatedAt', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
         })
-        res.status(200).json(books)
+
+        res.status(200).json({
+            total: total, // Nombre total de livres
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            books: books, // Liste des livres pour cette page
+        })
     } catch (error) {
         handleError(res, 'Erreur lors de la récupération des livres.', error)
     }
 }
 
-
 // Obtenir un livre par son ID
 export const getBookById = async (req, res) => {
     try {
         const book = await Book.findByPk(req.params.bookId, {
-            include: [{
-                model: Category,
-                attributes: ['CategoryName']
-            }]
+            include: [
+                {
+                    model: Category,
+                    attributes: ['CategoryName'],
+                },
+            ],
         })
 
         if (!book) {
@@ -36,7 +53,6 @@ export const getBookById = async (req, res) => {
         handleError(res, 'Erreur lors de la récupération du livre.', error)
     }
 }
-
 
 // Créer un nouveau livre
 export const createBook = async (req, res) => {
@@ -52,17 +68,23 @@ export const createBook = async (req, res) => {
             return res.status(404).json({ message: 'Catégorie non trouvée.' })
         }
 
-        const newBook = await Book.create({ Title: Title, Author: Author, ISBN: ISBN, PublishedYear: PublishedYear, CategoryID: CategoryId, Availability: 'Available' })
+        const newBook = await Book.create({
+            Title: Title,
+            Author: Author,
+            ISBN: ISBN,
+            PublishedYear: PublishedYear,
+            CategoryID: CategoryId,
+            Availability: 'Available',
+        })
         res.status(201).json(newBook)
     } catch (error) {
         handleError(res, 'Erreur lors de la création du livre.', error)
     }
 }
 
-
 // Mettre à jour un livre par son ID
 export const updateBook = async (req, res) => {
-    const { bookId } = req.params    
+    const { bookId } = req.params
     try {
         const book = await Book.findByPk(bookId)
         if (!book) {
@@ -75,7 +97,6 @@ export const updateBook = async (req, res) => {
         handleError(res, 'Erreur lors de la mise à jour du livre.', error)
     }
 }
-
 
 // Supprimer un livre par son ID
 export const deleteBook = async (req, res) => {
@@ -94,23 +115,44 @@ export const deleteBook = async (req, res) => {
 
 // Filtrer les livres par catégorie
 export const getBooksByCategory = async (req, res) => {
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Entre 1 et 100
+    const offset = (page - 1) * limit
+
     try {
-        const books = await Book.findAll({
+        const { rows: books, count: total } = await Book.findAndCountAll({
             where: {
-                CategoryId: req.params.categoryId
+                CategoryId: req.params.categoryId,
             },
-            include: [{
-                model: Category,
-                attributes: ['CategoryName']
-            }]
+            include: [
+                {
+                    model: Category,
+                    attributes: ['CategoryName'],
+                },
+            ],
+            order: [['CreatedAt', 'DESC']],
+            limit: parseInt(limit), // Nombre d'éléments par page
+            offset: parseInt(offset), // Décalage pour la pagination
         })
 
         if (books.length === 0) {
-            return res.status(404).json({ message: 'Aucun livre trouvé dans cette catégorie.' })
+            return res
+                .status(404)
+                .json({ message: 'Aucun livre trouvé dans cette catégorie.' })
         }
 
-        res.status(200).json(books)
+        res.status(200).json({
+            total: total, // Nombre total de livres dans cette catégorie
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            books: books, // Liste des livres pour cette page
+        })
     } catch (error) {
-        handleError(res, 'Erreur lors de la récupération des livres par catégorie.', error)
+        handleError(
+            res,
+            'Erreur lors de la récupération des livres par catégorie.',
+            error
+        )
     }
 }

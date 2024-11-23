@@ -1,6 +1,6 @@
 import express from 'express'
 import authenticateJWT from '../middlewares/authMiddleware.js'
-import { isAdmin, isSuperAdmin } from '../middlewares/authorization.js'
+import { isSuperAdmin } from '../middlewares/authorization.js'
 import {
     getAuditLogs,
     getAuditLogsByUser,

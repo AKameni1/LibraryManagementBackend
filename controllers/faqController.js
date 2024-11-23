@@ -3,14 +3,29 @@ import { FAQ } from '../models/index.js'
 
 // Récupérer toutes les FAQs
 export const getAllFAQs = async (req, res) => {
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Limité entre 1 et 100
+    const offset = (page - 1) * limit
+
     try {
-        const faqs = await FAQ.findAll({
-            order: [['CreatedAt', 'DESC']]
+        const { rows: faqs, count: total } = await FAQ.findAndCountAll({
+            order: [['CreatedAt', 'DESC']],
+            limit: limit,
+            offset: offset,
         })
-        res.status(200).json(faqs)
+
+        res.status(200).json({
+            total: total, // Nombre total de FAQs
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            faqs: faqs, // Liste des FAQs pour cette page
+        })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la récupération des FAQs' })
+        res.status(500).json({
+            message: 'Erreur lors de la récupération des FAQs',
+        })
     }
 }
 
@@ -28,7 +43,9 @@ export const getFAQById = async (req, res) => {
         res.status(200).json(faq)
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la récupération de la FAQ' })
+        res.status(500).json({
+            message: 'Erreur lors de la récupération de la FAQ',
+        })
     }
 }
 
@@ -44,16 +61,18 @@ export const createFAQ = async (req, res) => {
     try {
         const newFAQ = await FAQ.create({
             Question: question,
-            Answer: answer
+            Answer: answer,
         })
 
         res.status(201).json({
             message: 'FAQ créée avec succès',
-            faq: newFAQ
+            faq: newFAQ,
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la création de la FAQ' })
+        res.status(500).json({
+            message: 'Erreur lors de la création de la FAQ',
+        })
     }
 }
 
@@ -76,16 +95,18 @@ export const updateFAQ = async (req, res) => {
 
         const updatedFAQ = await faq.update({
             Question: question || faq.Question,
-            Answer: answer || faq.Answer
+            Answer: answer || faq.Answer,
         })
 
         res.status(200).json({
             message: 'FAQ mise à jour avec succès',
-            faq: updatedFAQ
+            faq: updatedFAQ,
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la mise à jour de la FAQ' })
+        res.status(500).json({
+            message: 'Erreur lors de la mise à jour de la FAQ',
+        })
     }
 }
 
@@ -104,6 +125,8 @@ export const deleteFAQ = async (req, res) => {
         res.status(200).json({ message: 'FAQ supprimée avec succès' })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: 'Erreur lors de la suppression de la FAQ' })
+        res.status(500).json({
+            message: 'Erreur lors de la suppression de la FAQ',
+        })
     }
 }
