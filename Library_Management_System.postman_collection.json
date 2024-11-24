@@ -19,14 +19,23 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"const response = pm.response.json();\r",
+											"// Récupère les cookies de la réponse\r",
+											"var cookies = pm.cookies;\r",
 											"\r",
-											"// Vérifie que les tokens sont présents dans la réponse\r",
-											"if (response.token && response.refreshToken) {\r",
-											"    pm.environment.set('authToken', response.token);\r",
-											"    pm.environment.set('refreshToken', response.refreshToken);\r",
+											"// Vérifie que le cookie 'refreshToken' est présent\r",
+											"if (cookies.has('refreshToken')) {\r",
+											"    var refreshToken = cookies.get('refreshToken');\r",
+											"    pm.environment.set('refreshToken', refreshToken);\r",
 											"} else {\r",
-											"    console.error('Erreur : Les tokens ne sont pas présents dans la réponse.');\r",
+											"    console.error('Erreur : Le cookie refreshToken n\\'est pas présent dans la réponse.');\r",
+											"}\r",
+											"\r",
+											"// Récupère l'accessToken de la réponse JSON\r",
+											"var response = pm.response.json();\r",
+											"if (response.accessToken) {\r",
+											"    pm.environment.set('authToken', response.accessToken);\r",
+											"} else {\r",
+											"    console.error('Erreur : accessToken n\\'est pas présent dans la réponse.');\r",
 											"}\r",
 											""
 										],
@@ -40,7 +49,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"username\": \"username\",\n    \"email\": \"email.user@gmail.com\"\n}",
+									"raw": "{\n    \"username\": \"Arthur Kameni\",\n    \"email\": \"arthur.kamenitchualeu@gmail.com\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -169,7 +178,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"username\": \"newuser\",\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}",
+									"raw": "{\n    \"username\": \"newuser_withimageProfile\",\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -297,7 +306,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"refreshToken\":\"{{refreshToken}}\"\r\n}",
+									"raw": "",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -313,6 +322,25 @@
 										"api",
 										"auth",
 										"refresh-token"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/auth/logout",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"logout"
 									]
 								}
 							},
@@ -385,6 +413,50 @@
 										"api",
 										"users",
 										"me"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create User",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "username",
+											"value": "newUserScreenShot",
+											"type": "text"
+										},
+										{
+											"key": "email",
+											"value": "new.email@example.com",
+											"type": "text"
+										},
+										{
+											"key": "password",
+											"value": "password123",
+											"type": "text"
+										},
+										{
+											"key": "profileImage",
+											"type": "file",
+											"src": "postman-cloud:///1efaa065-1860-4cc0-9f04-39728ce9bc2e"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/users/create",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"users",
+										"create"
 									]
 								}
 							},
@@ -2136,6 +2208,9 @@
 						},
 						{
 							"name": "Get Ticket Responses",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -2149,6 +2224,10 @@
 								},
 								"method": "GET",
 								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
 								"url": {
 									"raw": "{{baseUrl}}/api/tickets/:ticketId/responses",
 									"host": [
@@ -2245,11 +2324,6 @@
 	"variable": [
 		{
 			"key": "authToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "refreshToken",
 			"value": "",
 			"type": "string"
 		},

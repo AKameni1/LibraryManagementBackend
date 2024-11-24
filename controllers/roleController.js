@@ -5,6 +5,7 @@ import {
     getPermissionsRole,
     revokePermissionRole,
 } from './permissionController.js'
+import { DefaultImages } from '../config/defaultImages.js'
 import sequelize from '../config/db.js'
 
 // Récupérer tous les rôles
@@ -103,6 +104,11 @@ export const promoteUserRole = async (userId, newRoleId) => {
     }
 
     user.RoleID = newRole.RoleID
+
+    if (!user.ProfileImage) {
+        user.ProfileImage = DefaultImages[newRole.Name]
+    }
+
     await user.save()
 }
 
@@ -119,6 +125,11 @@ export const downgradeUserRole = async (userId) => {
     }
 
     user.RoleID = clientRole.RoleID
+
+    if (!user.ProfileImage) {
+        user.ProfileImage = DefaultImages[clientRole.Name]
+    }
+
     await user.save()
 }
 

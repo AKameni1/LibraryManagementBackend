@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { User, Role } from '../models/index.js'
 import { handleError } from '../utils/handleError.js'
 import { logAction } from './auditLogController.js'
+import { DefaultImages } from '../config/defaultImages.js'
 import { Op } from 'sequelize'
 
 // Récupérer les informations de l'utilisateur
@@ -80,11 +81,23 @@ export const createUser = async (req, res) => {
 
         console.log(hashedPassword)
 
+        // Vérification de l'image de profil (si l'image est envoyée via Multer)
+        let profileImage = '' // Variable pour l'URL de l'image
+
+        // Si un fichier a été envoyé, récupérer son chemin
+        if (req.file) {
+            profileImage = `/assets/images/${req.file.filename}`
+        } else {
+            profileImage = DefaultImages.client
+        }
+
+        // Création du nouvel utilisateur
         const newUser = await User.create({
             Username: username,
             Email: email,
             Password: hashedPassword,
             RoleID: defaultRole.RoleID,
+            ProfileImage: profileImage,
         })
 
         // Log l'action dans les logs d'audit après la création
@@ -142,20 +155,25 @@ export const updateUser = async (req, res) => {
         if (updates.password)
             updatesFormatted.Password = await bcrypt.hash(updates.password, 10)
 
+        // Vérifier si un fichier a été uploadé et mettre à jour l'image de profil
+        if (req.file) {
+            updatesFormatted.ProfileImage = `/assets/images/${req.file.filename}`
+        }
+
+        // Si aucun fichier n'a été uploadé, garder l'image actuelle ou appliquer une image par défaut si nécessaire
+        if (!req.file && !updates.ProfileImage) {
+            updatesFormatted.ProfileImage =
+                user.ProfileImage || DefaultImages.client // Utilisation d'une image par défaut si aucune image n'est envoyée
+        }
+
         await user.update(updatesFormatted)
         await user.save()
 
         // Log l'action dans les logs d'audit après la mise à jour
-        await logAction(req.user.id, 'User', 'Update', {
+        await logAction(userId || 0, 'User', 'Update', {
             userId: user.UserID,
             updatedFields: Object.keys(updatesFormatted),
-        })
-
-        // Log action avec les anciennes données (previous)
-        await logAction(userId || 0, 'User', 'updateUser', {
-            userId,
-            previous: previousData,
-            updates: updatesFormatted,
+            previous: Object.keys(previousData),
         })
 
         res.json({

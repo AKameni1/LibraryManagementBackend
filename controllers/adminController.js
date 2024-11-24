@@ -6,6 +6,7 @@ import {
     getPermissionsOfUser,
 } from './permissionController.js'
 import { logAction } from './auditLogController.js'
+import { DefaultImages } from '../config/defaultImages.js'
 import { Op } from 'sequelize'
 import bcrypt from 'bcryptjs'
 import { handleError } from '../utils/handleError.js'
@@ -96,6 +97,13 @@ export const createUser = async (req, res) => {
         // Hachage du mot de passe
         const hashedPassword = await bcrypt.hash(password, 10)
 
+        // Gérer l'image de profil
+        let profileImage = DefaultImages.client // Image par défaut
+
+        if (req.file) {
+            profileImage = `/assets/images/${req.file.filename}` // L'image téléchargée via Multer
+        }
+
         console.log(hashedPassword)
 
         const newUser = await User.create({
@@ -103,10 +111,11 @@ export const createUser = async (req, res) => {
             Email: email,
             Password: hashedPassword,
             RoleID: defaultRole.RoleID,
+            ProfilePicture: profileImage,
         })
 
         // Enregistrement de l'action
-        await logAction(req.user.userId || null, 'User', 'createUser', {
+        await logAction(req.user?.userId || null, 'User', 'createUser', {
             newUser,
         })
 

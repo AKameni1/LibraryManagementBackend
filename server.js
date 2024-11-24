@@ -1,15 +1,20 @@
 import express from 'express'
 import dotenv from 'dotenv'
+import path from 'path'
 import routes from './routes/index.js'
 import sequelize from './config/db.js'
 import './utils/scheduler.js'
 import cookieParser from 'cookie-parser'
+
+const __dirname = path.dirname(new URL(import.meta.url).pathname)
 
 dotenv.config()
 
 const app = express()
 app.use(express.json())
 app.use(cookieParser())
+app.use('/assets', express.static(path.join(__dirname, 'assets')))
+app.use(express.urlencoded({ extended: true }))
 
 
 // Utilisation des routes
