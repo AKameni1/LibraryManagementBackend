@@ -3,6 +3,7 @@ import authenticateJWT from '../middlewares/authMiddleware.js'
 import {
     borrowBook,
     extendLoan,
+    getActiveLoans,
     getBookUsageReport,
     getLoanHistory,
     returnBook,
@@ -32,6 +33,7 @@ router.post(
 )
 router.get('/history', authenticateJWT, getLoanHistory)
 router.get('/report', authenticateJWT, isLibrarian, getBookUsageReport)
+router.get('/active-loan', authenticateJWT, isLibrarian, getActiveLoans)
 
 // S'execute en interne
 // router.get('/availability/:bookId', authenticateJWT, checkBookAvailability)

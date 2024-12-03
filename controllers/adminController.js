@@ -8,7 +8,6 @@ import {
 import { logAction } from './auditLogController.js'
 import { DefaultImages } from '../config/defaultImages.js'
 import { Op } from 'sequelize'
-import bcrypt from 'bcryptjs'
 import { handleError } from '../utils/handleError.js'
 
 export const createSuperAdmin = async (req, res) => {
@@ -93,9 +92,9 @@ export const createUser = async (req, res) => {
             })
         }
 
-        console.log(password)
+        // console.log(password)
         // Hachage du mot de passe
-        const hashedPassword = await bcrypt.hash(password, 10)
+        // const hashedPassword = await bcrypt.hash(password, 10)
 
         // Gérer l'image de profil
         let profileImage = DefaultImages.client // Image par défaut
@@ -104,12 +103,12 @@ export const createUser = async (req, res) => {
             profileImage = `/assets/images/${req.file.filename}` // L'image téléchargée via Multer
         }
 
-        console.log(hashedPassword)
+        // console.log(hashedPassword)
 
         const newUser = await User.create({
             Username: username,
             Email: email,
-            Password: hashedPassword,
+            Password: password,
             RoleID: defaultRole.RoleID,
             ProfilePicture: profileImage,
         })
@@ -141,6 +140,13 @@ export const getUsers = async (req, res) => {
     try {
         const { rows: users, count: total } = await User.findAndCountAll({
             attributes: { exclude: ['Password'] },
+            include: [
+                {
+                    model: Role,
+                    as: 'Role',
+                    attributes: ['RoleID', 'Name', 'Description'],
+                },
+            ],
             limit: parseInt(limit),
             offset: parseInt(offset),
         })
@@ -213,7 +219,7 @@ export const toggleUserActivation = async (req, res) => {
     const { userId } = req.params
     const { isActive } = req.body
 
-    if (!isActive) {
+    if (isActive === null || isActive === undefined) {
         res.status(400).json({ message: 'isActive requis.' })
     }
 

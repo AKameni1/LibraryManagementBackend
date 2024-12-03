@@ -4,13 +4,14 @@ import { body } from 'express-validator'
 export const validateCreateUser = [
     body('username').notEmpty().withMessage('Le nom d\'utilisateur est requis.'),
     body('email').isEmail().withMessage('L\'email est invalide,'),
-    body('password').isLength({ min: 12 }).withMessage('Le mot de passe doit contenir au 12 caractères.')
+    body('password').isLength({ min: 12 }).withMessage('Le mot de passe doit contenir au 12 caractères.'),
+    body('role').optional()
 ]
 
 export const validateAuth = [
-    body('username').notEmpty().withMessage('Le nom d\'utilisateur est requis.'),
-    body('email').optional().isEmail().withMessage('L\'email est invalide,'),
-    // body('password').isLength({ min: 12 }).withMessage('Le mot de passe doit contenir au 12 caractères')
+    // body('username').notEmpty().withMessage('Le nom d\'utilisateur est requis.'),
+    body('email').isEmail().withMessage('L\'email est invalide,'),
+    body('password').isLength({ min: 6 }).withMessage('Le mot de passe doit contenir au 6 caractères')
 ]
 
 export const validateUpdateUser = [

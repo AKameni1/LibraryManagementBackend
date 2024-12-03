@@ -10,8 +10,8 @@ const router = express.Router()
 
 
 // Routes pour les rôles
-router.get('/', authenticateJWT, isSuperAdmin, getAllRoles)
-router.get('/:roleId', authenticateJWT, isSuperAdmin, getRoleById)
+router.get('/', authenticateJWT, isAdmin, getAllRoles)
+router.get('/:roleId', authenticateJWT, isAdmin, getRoleById)
 router.get('/usersByRole/:roleName', authenticateJWT, isAdmin, getUsersByRole)
 
 // Routes pour gérer la promotion et la rétrogradation des utilisateurs

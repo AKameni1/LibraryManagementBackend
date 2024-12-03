@@ -145,6 +145,34 @@ export const getLoanHistory = async (req, res) => {
     }
 }
 
+export const getActiveLoans = async (req, res) => {
+    const page = Math.max(1, parseInt(req.query.page) || 1) // Page minimum 1
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Limité entre 1 et 100
+    const offset = (page - 1) * limit
+    try {
+        const { rows: loansActive, count: total } = await Loan.findAndCountAll({
+            where: { Status: 'Borrowed' },
+            include: [
+                { model: User, attributes: ['Username'] },
+                { model: Book, attributes: ['Title', 'Author'] },
+            ],
+            limit: limit,
+            offset: offset,
+        })
+
+        res.status(200).json({
+            total: total,
+            page: parseInt(page), // Page actuelle
+            limit: parseInt(limit), // Limite par page
+            totalPages: Math.ceil(total / limit), // Nombre total de pages
+            loansActive: loansActive,
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: 'Failed to fetch loans', error })
+    }
+}
+
 // Rapport d'utilisation
 export const getBookUsageReport = async (req, res) => {
     const page = Math.max(1, parseInt(req.query.page) || 1) // Page minimum 1
@@ -157,10 +185,8 @@ export const getBookUsageReport = async (req, res) => {
                 [sequelize.fn('COUNT', sequelize.col('LoanID')), 'LoanCount'],
             ],
             include: [
-                {
-                    model: Book,
-                    attributes: ['Title', 'Author'], // Ajouter des colonnes nécessaires
-                },
+                { model: User, attributes: ['Username'] },
+                { model: Book, attributes: ['Title', 'Author'] },
             ],
             group: ['BookID', 'Book.BookID'], // Groupement pour éviter les doublons
             order: [[sequelize.literal('LoanCount'), 'DESC']], // Trier par nombre d'emprunts

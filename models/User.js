@@ -83,13 +83,14 @@ const User = sequelize.define(
         tableName: 'User',
         timestamps: false,
         hooks: {
-            beforeCreate: (user) => {
+            beforeCreate: async (user) => {
                 user.Password = bcrypt.hashSync(user.Password)
-                if (!user.ProfilePicture) {
-                    user.ProfilePicture = DefaultImages.client
+                if (!user.ProfileImage) {
+                    user.ProfileImage = DefaultImages.client
                 }
             },
             beforeUpdate: async (user) => {
+                user.Password = bcrypt.hashSync(user.Password)
                 const currentRole = await Role.findByPk(user.RoleID)
                 if (!user.ProfileImage) {
                     switch (currentRole.Name) {

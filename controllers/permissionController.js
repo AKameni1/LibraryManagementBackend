@@ -43,6 +43,15 @@ export const createPermission = async (req, res) => {
     }
 
     try {
+        const existingPermission = await Permission.findOne({
+            where: { Name: name },
+        })
+        if (existingPermission) {
+            return res.status(400).json({
+                message: `La permission ${name} existe déjà.`,
+            })
+        }
+
         const newPermission = await Permission.create({
             Name: name,
             Description: description,

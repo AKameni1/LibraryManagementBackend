@@ -10,23 +10,21 @@ import sequelize from '../config/db.js'
 
 // Récupérer tous les rôles
 export const getAllRoles = async (req, res) => {
-    const page = Math.max(1, parseInt(req.query.page) || 1) // Minimum : 1
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10)) // Entre 1 et 100
-    const offset = (page - 1) * limit
-
     try {
-        const { rows: roles, count: total } = await Role.findAndCountAll({
-            limit: limit,
-            offset: offset,
+        const roles = await Role.findAll({
+            attributes: ['RoleID', 'Name', 'Description'],
+            include: [
+                {
+                    model: Permission,
+                    as: 'Permissions',
+                    attributes: ['PermissionID', 'Name', 'Description'],
+                    through: { attributes: [] },
+                },
+            ],
+            order: [['Name', 'ASC']],
         })
 
-        res.status(200).json({
-            total: total, // Nombre total de rôle
-            page: parseInt(page), // Page actuelle
-            limit: parseInt(limit), // Limite par page
-            totalPages: Math.ceil(total / limit), // Nombre total de pages
-            roles: roles,
-        })
+        res.status(200).json({ roles: roles })
     } catch (error) {
         handleError(res, 'Erreur lors de la récupération des rôles', error)
     }
@@ -177,12 +175,20 @@ export const addPermissionsToRole = async (req, res) => {
         }
 
         // Ajouter les permissions valides au rôle
-        await addPermissionRole(roleId, existingPermissionIds, transaction)
+        await role.addPermissions(existingPermissionIds, {
+            transaction: transaction,
+        })
+
+        const addedPermissions = await Permission.findAll({
+            where: { PermissionID: existingPermissionIds },
+            attributes: ['PermissionID', 'Name', 'Description'],
+            transaction,
+        })
 
         await transaction.commit()
         res.status(200).json({
             message: 'Permissions ajoutées au rôle avec succès.',
-            addedPermissions: existingPermissionIds,
+            addedPermissions: addedPermissions,
         })
     } catch (error) {
         await transaction.rollback()

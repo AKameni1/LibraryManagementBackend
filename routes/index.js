@@ -12,6 +12,7 @@ import auditLogRoutes from './auditLogRoutes.js'
 import faqRoutes from './faqRoutes.js'
 import supportTicketRoutes from './supportTicketRoutes.js'
 import ticketResponseRoutes from './ticketResponseRoutes.js'
+import imageRoutes from './imageRoutes.js'
 
 export default {
     '/api/auth': authRoutes,
@@ -27,5 +28,6 @@ export default {
     '/api/audit-log': auditLogRoutes,
     '/api/faqs': faqRoutes,
     '/api/tickets': supportTicketRoutes,
-    '/api/tickets/responses': ticketResponseRoutes
+    '/api/tickets/responses': ticketResponseRoutes,
+    '/api/images': imageRoutes,
 }

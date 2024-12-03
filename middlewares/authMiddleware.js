@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken'
 
-
 const authenticateJWT = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer', '').trim()
 
@@ -13,7 +12,12 @@ const authenticateJWT = (req, res, next) => {
         req.user = decoded
         next()
     } catch (err) {
-        res.status(401).json({ message: 'Token invalide ou expiré' })
+        if (err.name === 'TokenExpiredError') {
+            return res
+                .status(401)
+                .json({ message: 'Token expiré, veuillez vous reconnecter.' })
+        }
+        return res.status(401).json({ message: 'Token invalide.' })
     }
 }
 

@@ -1,5 +1,5 @@
+import { DefaultImages } from './config/defaultImages.js'
 import { User, Role } from './models/index.js'
-import bcrypt from 'bcryptjs'
 ;(async () => {
     try {
         const superAdminRole = await Role.findOne({
@@ -19,13 +19,12 @@ import bcrypt from 'bcryptjs'
             process.exit(1)
         }
 
-        const hashedPassword = await bcrypt.hash('YourSecurePassword123', 10)
-
         const superAdmin = await User.create({
-            Username: 'SuperAdmin',
+            Username: 'Arthur',
             Email: 'superadmin@example.com',
-            Password: hashedPassword,
+            Password: 'Arthur123',
             RoleID: superAdminRole.RoleID,
+            ProfileImage: DefaultImages.superAdmin,
         })
 
         console.log('Super administrateur créé avec succès :', superAdmin)

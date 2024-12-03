@@ -4,6 +4,7 @@ import path from 'path'
 import routes from './routes/index.js'
 import sequelize from './config/db.js'
 import './utils/scheduler.js'
+import cors from 'cors'
 import cookieParser from 'cookie-parser'
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname)
@@ -15,7 +16,14 @@ app.use(express.json())
 app.use(cookieParser())
 app.use('/assets', express.static(path.join(__dirname, 'assets')))
 app.use(express.urlencoded({ extended: true }))
-
+app.use(
+    cors({
+        origin: process.env.CLIENT_URL,
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-type', 'Authorization'],
+    })
+)
 
 // Utilisation des routes
 Object.entries(routes).forEach(([path, route]) => {
@@ -23,10 +31,13 @@ Object.entries(routes).forEach(([path, route]) => {
 })
 
 // Connexion à la base de données
-sequelize.sync().then(() => {
-    app.listen(process.env.PORT, () => {
-        console.log(`Server is running on port ${process.env.PORT}`)
+sequelize
+    .sync()
+    .then(() => {
+        app.listen(process.env.PORT, () => {
+            console.log(`Server is running on port ${process.env.PORT}`)
+        })
     })
-}).catch((err) => {
-    console.error('Unable to connect to the database:', err)
-})
+    .catch((err) => {
+        console.error('Unable to connect to the database:', err)
+    })

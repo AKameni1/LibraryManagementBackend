@@ -46,14 +46,14 @@ export const isClient = (req, res, next) => {
 }
 
 export const isCurrentUser = (req, res, next) => {
-    if (req.user.UserID !== req.params.userId) {
+    if (req.user.userId !== req.params.userId) {
         return res.status(403).json({ message: 'Accès interdit' })
     }
     next()
 }
 
 export const hasDeleteUserPermission = async (req, res, next) => {
-    const userId = req.user.id
+    const userId = req.user.userId
     const permissions = await getPermissionsOfUser(userId)
 
     if (!permissions.includes('delete_user')) {
@@ -136,12 +136,13 @@ export const preventSuperAdminDeletion = async (req, res, next) => {
 }
 
 export const restrictSuperAdminCreation = async (req, res, next) => {
+    const superAdminRole = await Role.findOne({ where: { Name: 'superAdmin' } })
+    if (!superAdminRole) {
+        return next()
+    }
+
     const superAdminExists = await User.findOne({
-        where: {
-            RoleID: await Role.findOne({
-                where: { Name: 'superAdmin' },
-            }).then((role) => role.RoleID),
-        },
+        where: { RoleID: superAdminRole.RoleID },
     })
 
     if (superAdminExists) {

@@ -20,15 +20,29 @@ import TicketResponse from './TicketResponse.js'
 User.belongsTo(Role, { foreignKey: 'RoleID', as: 'Role' })
 Role.hasMany(User, { foreignKey: 'RoleID' })
 
-
 // Relation entre User et Permission via UserPermission
-User.belongsToMany(Permission, { through: UserPermission, foreignKey: 'UserID', as: 'Permissions' })
-Permission.belongsToMany(User, { through: UserPermission, foreignKey: 'PermissionID' })
+User.belongsToMany(Permission, {
+    through: UserPermission,
+    foreignKey: 'UserID',
+    as: 'Permissions',
+})
+Permission.belongsToMany(User, {
+    through: UserPermission,
+    foreignKey: 'PermissionID',
+    as: 'Users',
+})
 
 // Relation entre Role et Permission via RolePermission
-Role.belongsToMany(Permission, { through: RolePermission, foreignKey: 'RoleID' })
-Permission.belongsToMany(Role, { through: RolePermission, foreignKey: 'PermissionID' })
-
+Role.belongsToMany(Permission, {
+    through: RolePermission,
+    foreignKey: 'RoleID',
+    as: 'Permissions',
+})
+Permission.belongsToMany(Role, {
+    through: RolePermission,
+    foreignKey: 'PermissionID',
+    as: 'Roles',
+})
 
 // Relation RolePermission-Role et RolePermission-Permission
 RolePermission.belongsTo(Role, { foreignKey: 'RoleID' })
@@ -38,7 +52,6 @@ RolePermission.belongsTo(Permission, { foreignKey: 'PermissionID' })
 UserPermission.belongsTo(User, { foreignKey: 'UserID' })
 UserPermission.belongsTo(Permission, { foreignKey: 'PermissionID' })
 
-
 // Relations Loan - User et Loan - Book
 Loan.belongsTo(User, { foreignKey: 'UserID', onDelete: 'SET NULL' })
 Loan.belongsTo(Book, { foreignKey: 'BookID', onDelete: 'SET NULL' })
@@ -46,10 +59,13 @@ Loan.belongsTo(Book, { foreignKey: 'BookID', onDelete: 'SET NULL' })
 User.hasMany(Loan, { foreignKey: 'UserID' })
 Book.hasMany(Loan, { foreignKey: 'BookID' })
 
-
 // Relation entre User et Reservation
 User.hasMany(Reservation, { foreignKey: 'UserID' })
-Reservation.belongsTo(User, { foreignKey: 'UserID', as: 'User', onDelete: 'CASCADE' })
+Reservation.belongsTo(User, {
+    foreignKey: 'UserID',
+    as: 'User',
+    onDelete: 'CASCADE',
+})
 
 // Relation entre Book et Reservation
 Book.hasMany(Reservation, { foreignKey: 'BookID' })
@@ -63,4 +79,30 @@ Report.hasMany(ReportParameter, { foreignKey: 'ReportID', onDelete: 'CASCADE' })
 ReportParameter.belongsTo(Report, { foreignKey: 'ReportID' })
 AuditLog.belongsTo(User, { foreignKey: 'UserID' })
 
-export { User, Role, Book, Loan, Category, Reservation, Permission, UserPermission, RolePermission, Report, ReportParameter, AuditLog, FAQ, SupportTicket, TicketResponse}
+TicketResponse.belongsTo(SupportTicket, {
+    foreignKey: 'TicketID',
+    as: 'Ticket',
+})
+
+TicketResponse.belongsTo(User, {
+    foreignKey: 'UserID',
+    as: 'User',
+})
+
+export {
+    User,
+    Role,
+    Book,
+    Loan,
+    Category,
+    Reservation,
+    Permission,
+    UserPermission,
+    RolePermission,
+    Report,
+    ReportParameter,
+    AuditLog,
+    FAQ,
+    SupportTicket,
+    TicketResponse,
+}
