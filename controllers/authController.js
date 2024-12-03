@@ -69,7 +69,7 @@ export const loginUser = async (req, res) => {
         const token = await generateToken(user)
         const refreshToken = generateRefreshToken(user)
 
-        const userData = formatUserData(user)
+        const userData = await formatUserData(user)
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
@@ -140,7 +140,7 @@ export const refreshAccessToken = async (req, res) => {
         const newAccessToken = await generateToken(user)
         console.log('Nouveau access token généré:', newAccessToken)
 
-        const userData = formatUserData(user)
+        const userData = await formatUserData(user)
 
         // Renvoie du nouveau token
         return res.status(200).json({

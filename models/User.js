@@ -85,8 +85,22 @@ const User = sequelize.define(
         hooks: {
             beforeCreate: async (user) => {
                 user.Password = bcrypt.hashSync(user.Password)
+                const currentRole = await Role.findByPk(user.RoleID)
                 if (!user.ProfileImage) {
-                    user.ProfileImage = DefaultImages.client
+                    switch (currentRole.Name) {
+                        case 'admin':
+                            user.ProfileImage = DefaultImages.admin
+                            break
+                        case 'librarian':
+                            user.ProfileImage = DefaultImages.librarian
+                            break
+                        case 'superAdmin':
+                            user.ProfileImage = DefaultImages.superAdmin
+                            break
+                        default:
+                            user.ProfileImage = DefaultImages.client
+                            break
+                    }
                 }
             },
             beforeUpdate: async (user) => {

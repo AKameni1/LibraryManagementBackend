@@ -7,6 +7,7 @@ import {
 } from './permissionController.js'
 import { logAction } from './auditLogController.js'
 import { DefaultImages } from '../config/defaultImages.js'
+import { getSignedImageUrl } from '../services/s3Service.js'
 import { Op } from 'sequelize'
 import { handleError } from '../utils/handleError.js'
 
@@ -169,9 +170,9 @@ export const getUsers = async (req, res) => {
 
 // Obtenir un user par son id
 export const getUserById = async (req, res) => {
-    const { id } = req.params
+    const { userId } = req.params
     try {
-        const user = await User.findByPk(id, {
+        const user = await User.findByPk(userId, {
             attributes: { exclude: ['Password'] },
         })
 
@@ -179,7 +180,12 @@ export const getUserById = async (req, res) => {
             return res.status(404).json({ message: 'Utilisateur non trouvé.' })
         }
 
-        res.json(user)
+        const profileImageUrl = await getSignedImageUrl(user.ProfileImage)
+
+        res.json({
+            ...user.toJSON(),
+            profileImageUrl,
+        })
     } catch (error) {
         handleError(
             res,

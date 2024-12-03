@@ -1,17 +1,29 @@
 import express from 'express'
 import multerS3 from '../config/multerS3.js'
 import { DefaultImages } from '../config/defaultImages.js'
-import { deleteImage, getSignedUrlsForDefaults } from '../services/s3Service.js'
+import {
+    deleteImage,
+    getSignedImageUrl,
+    getSignedUrlsForDefaults,
+} from '../services/s3Service.js'
 
 const router = express.Router()
 
 // Upload une image
 router.post('/upload', multerS3.single('image'), async (req, res) => {
     try {
-        const imageUrl = req.file.location
+        // Vérifier si un fichier a été téléchargé
+        if (!req.file) {
+            return res.status(400).json({
+                message:
+                    "Aucun fichier n'a été téléchargé. Veuillez fournir une image valide.",
+            })
+        }
+        const key = req.file.key
+        const signedUrl = await getSignedImageUrl(key)
         res.status(200).json({
             message: 'Image uploadée avec succès.',
-            url: imageUrl,
+            url: signedUrl,
         })
     } catch (error) {
         res.status(500).json({

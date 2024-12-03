@@ -34,7 +34,9 @@ router.use(auditLogMiddleware('userAction'))
 
 // User management routes
 router.get('/', authenticateJWT, isAdmin, getUsers)
+
 router.get('/:userId', authenticateJWT, isAdmin, getUserById)
+
 router.post(
     '/create',
     authenticateJWT,

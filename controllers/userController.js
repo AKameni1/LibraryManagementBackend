@@ -9,6 +9,7 @@ import {
     deleteImage,
 } from '../services/s3Service.js'
 import { Op } from 'sequelize'
+import { generateRefreshToken, generateToken } from '../utils/authHelpers.js'
 
 // Récupérer les informations de l'utilisateur
 export const getUserInfo = async (req, res) => {
@@ -47,12 +48,40 @@ export const getUserInfo = async (req, res) => {
         // Log action (utilisateur récupéré)
         await logAction(userId, 'User', 'getUserInfo', { userId })
 
-        const userData = formatUserData(user)
+        const userData = await formatUserData(user)
 
         res.status(200).json({ user: userData })
     } catch (error) {
         console.error(err)
         handleError(res, 'Erreur provenant du serveur', error)
+    }
+}
+
+export const getUserProfileImage = async (req, res) => {
+    try {
+        const { userId } = req.params
+        const user = await User.findByPk(userId)
+
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé.' })
+        }
+        const profileImageKey = user.ProfileImage
+
+        if (!profileImageKey) {
+            return res.status(400).json({
+                message: 'Aucune image de profil associée à cet utilisateur.',
+            })
+        }
+
+        // Générer l'URL signée pour l'image de profil
+        const profileImageUrl = await getSignedImageUrl(user.ProfileImage)
+
+        res.status(200).json({ profileImageUrl })
+    } catch (error) {
+        res.status(500).json({
+            message: "Erreur lors de la récupération de l'image de profil.",
+            error: error.message,
+        })
     }
 }
 
@@ -81,7 +110,7 @@ export const createUser = async (req, res) => {
         })
         if (existingUser) {
             return res.status(400).json({
-                message: `L'utilisateur ${existingUser.Username} existe déjà.`,
+                message: `L'utilisateur existe déjà.`,
             })
         }
 
@@ -89,9 +118,18 @@ export const createUser = async (req, res) => {
 
         // Si un fichier a été envoyé, récupérer son chemin
         if (req.file) {
-            const key = `profile-images/${Date.now()}-${req.file.originalname}`
-            await uploadImage(key, req.file.buffer, req.file.mimetype)
-            profileImageKey = key // Stocker la clé S3
+            try {
+                const key = `profile-images/${Date.now()}-${
+                    req.file.originalname
+                }`
+                await uploadImage(key, req.file.buffer, req.file.mimetype)
+                profileImageKey = key
+            } catch (uploadError) {
+                return res.status(500).json({
+                    message: "Erreur lors du téléversement de l'image.",
+                    error: uploadError.message,
+                })
+            }
         } else {
             profileImageKey = DefaultImages.client // Image par défaut
         }
@@ -112,6 +150,16 @@ export const createUser = async (req, res) => {
             email: newUser.Email,
         })
 
+        const accessToken = await generateToken(newUser)
+        const refreshToken = generateRefreshToken(newUser)
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
+        })
+
         res.status(201).json({
             message: 'Utilisateur créé avec succès.',
             user: {
@@ -119,6 +167,7 @@ export const createUser = async (req, res) => {
                 profileImageUrl: await getSignedImageUrl(profileImageKey), // URL signée
                 // Exclure le mot de passe
             },
+            accessToken: accessToken,
         })
     } catch (error) {
         handleError(
@@ -166,17 +215,32 @@ export const updateUser = async (req, res) => {
 
         // Vérifier si un fichier a été uploadé et mettre à jour l'image de profil
         if (req.file) {
-            const key = `profile-images/${Date.now()}-${req.file.originalname}`
-            await uploadImage(key, req.file.buffer, req.file.mimetype)
+            try {
+                const key = `profile-images/${Date.now()}-${
+                    req.file.originalname
+                }`
+                await uploadImage(key, req.file.buffer, req.file.mimetype)
 
-            // Supprimez l'ancienne image si ce n'est pas une image par défaut
-            if (!Object.values(DefaultImages).includes(user.ProfileImage)) {
-                await deleteImage(user.ProfileImage)
+                // Supprimer l'ancienne image si ce n'est pas une image par défaut
+                if (!Object.values(DefaultImages).includes(user.ProfileImage)) {
+                    try {
+                        await deleteImage(user.ProfileImage)
+                    } catch (deleteError) {
+                        console.warn(
+                            `Erreur lors de la suppression de l'ancienne image : ${deleteError.message}`
+                        )
+                    }
+                }
+
+                updatedProfileImageKey = key
+                updatesFormatted.ProfileImage = updatedProfileImageKey
+            } catch (uploadError) {
+                return res.status(500).json({
+                    message:
+                        "Erreur lors de la mise à jour de l'image de profil.",
+                    error: uploadError.message,
+                })
             }
-
-            updatedProfileImageKey = key
-
-            updatesFormatted.ProfileImage = updatedProfileImageKey
         }
 
         // Si aucun fichier n'a été uploadé, garder l'image actuelle ou appliquer une image par défaut si nécessaire
