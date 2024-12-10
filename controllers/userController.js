@@ -1,5 +1,6 @@
 import { validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
+import { generateToken, generateRefreshToken } from '../utils/authHelpers.js'
 import { User, Role } from '../models/index.js'
 import { handleError } from '../utils/handleError.js'
 import { logAction } from './auditLogController.js'
@@ -75,12 +76,6 @@ export const createUser = async (req, res) => {
             })
         }
 
-        console.log(password)
-        // Hachage du mot de passe
-        const hashedPassword = await bcrypt.hash(password, 10)
-
-        console.log(hashedPassword)
-
         // Vérification de l'image de profil (si l'image est envoyée via Multer)
         let profileImage = '' // Variable pour l'URL de l'image
 
@@ -95,7 +90,7 @@ export const createUser = async (req, res) => {
         const newUser = await User.create({
             Username: username,
             Email: email,
-            Password: hashedPassword,
+            Password: password,
             RoleID: defaultRole.RoleID,
             ProfileImage: profileImage,
         })
@@ -107,10 +102,20 @@ export const createUser = async (req, res) => {
             email: newUser.Email,
         })
 
-        res.status(201).json({
-            message: 'Utilisateur créé avec succès.',
-            user: newUser,
+        const token = await generateToken(newUser)
+        const refreshToken = generateRefreshToken(newUser)
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // Utilise SSL en production
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         })
+
+        // Suppression du mot de passe des données utilisateur avant la réponse
+        const { Password, ...userWithoutPassword } = newUser.dataValues
+
+        res.status(201).json({ accessToken: token, user: userWithoutPassword })
     } catch (error) {
         handleError(
             res,
